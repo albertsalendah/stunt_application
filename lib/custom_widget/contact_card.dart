@@ -20,6 +20,7 @@ class ContactCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => ChatPage(
+              senderID: '',
               receverID: user.userID,
               receiverNama: user.nama,
               receiverKet: user.keterangan,

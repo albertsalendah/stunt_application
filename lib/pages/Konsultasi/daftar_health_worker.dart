@@ -80,18 +80,22 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
             builder: (context, state) {
               if (state is DataInitialState) {
                 return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                            height: 40 * fem,
-                            width: 40 * fem,
-                            child: const CircularProgressIndicator()),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        const Text('Memuat Data')
-                      ]),
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      await fetchData();
+                    },
+                    child: ListView(
+                        children: [
+                          SizedBox(
+                              height: 40 * fem,
+                              width: 40 * fem,
+                              child: const CircularProgressIndicator()),
+                          const SizedBox(
+                            height: 8,
+                          ),
+                          const Text('Memuat Data')
+                        ]),
+                  ),
                 );
               } else if (state is DataErrorState) {
                 return Center(

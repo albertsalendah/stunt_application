@@ -1,19 +1,20 @@
 import 'dart:developer';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:stunt_application/Bloc/AllBloc/all_bloc.dart';
 import 'package:stunt_application/Bloc/LogIn/login_state.dart';
 import 'package:stunt_application/firebase_options.dart';
-import 'package:stunt_application/pages/Konsultasi/konsultasi.dart';
 import 'package:stunt_application/pages/Login_Register/login.dart';
 import 'package:stunt_application/utils/firebase_api.dart';
+import 'package:stunt_application/utils/sqlite_helper.dart';
 import 'package:stunt_application/utils/vaksin_notification.dart';
 import 'Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import 'Bloc/LogIn/login_bloc.dart';
 import 'custom_widget/navigation_bar.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:path/path.dart' as path;
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -23,6 +24,10 @@ Future<void> main() async {
   // await FirebaseApi().initNotifications();
   await FirebaseApi().initPushNotifications();
   await FirebaseApi().initLocalNotification();
+  await SqliteHelper().database;
+  // String databasePath = await getDatabasesPath();
+  //   String fullpath = path.join(databasePath, 'stunt_app.db');
+  // await deleteDatabase(fullpath);
   VaksinNotification().initNotifications();
   tz.initializeTimeZones();
   runApp(
@@ -71,7 +76,9 @@ class _MyAppState extends State<MyApp> {
         if (isLoggedIn && !isSessionExpired) {
           return MaterialApp(
               navigatorKey: navigatorKey,
-              routes: {Konsultasi.route: (context) => const Konsultasi()},
+              routes: {
+                Navigationbar.route: (context) => const Navigationbar(index: 0)
+              },
               home: const Navigationbar(index: 0));
         } else {
           return const MaterialApp(home: Login());

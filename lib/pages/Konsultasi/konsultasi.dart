@@ -18,7 +18,6 @@ import '../../utils/SessionManager.dart';
 
 class Konsultasi extends StatefulWidget {
   const Konsultasi({super.key});
-  static const route = '/chat-list';
 
   @override
   State<Konsultasi> createState() => _KonsultasiState();
@@ -121,7 +120,16 @@ class _KonsultasiState extends State<Konsultasi> {
                           ]),
                     );
                   } else if (state is ListLatestMesasage) {
-                    listMessage = state.listLatestMessage;
+                    listMessage = state.listLatestMessage
+                        .where((element) =>
+                            element.conversationId !=
+                            '${user.userID}-${user.userID}')
+                        .toList();
+                    listMessage.sort((a, b) {
+                      DateTime dateTimeA = DateTime.parse('${a.tanggalkirim}');
+                      DateTime dateTimeB = DateTime.parse('${b.tanggalkirim}');
+                      return dateTimeB.compareTo(dateTimeA);
+                    });
                   }
                   return Expanded(
                     child: SizedBox(

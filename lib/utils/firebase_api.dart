@@ -5,12 +5,17 @@ import 'dart:developer';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:stunt_application/custom_widget/navigation_bar.dart';
 import 'package:stunt_application/pages/Konsultasi/konsultasi.dart';
 
 import '../main.dart';
+import '../pages/Konsultasi/konsultasi_api.dart';
 
+KonsultasiAPI api = KonsultasiAPI();
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  log('Push Notif');
+  final senderID = message.data['senderID'];
+  final receiverID = message.data['receiverID'];
+  api.getLatestMessageFromServer(senderID: senderID, receiverID: receiverID);
   // print('Title : ${message.notification?.title}');
   // print('Body : ${message.notification?.body}');
   // print('Payload : ${message.data}');
@@ -32,8 +37,8 @@ class FirebaseApi {
 
   void handleMessage(RemoteMessage? message) {
     if (message == null) return;
-
-    navigatorKey.currentState?.pushNamed(Konsultasi.route, arguments: message);
+    navigatorKey.currentState
+        ?.pushNamed(Navigationbar.route, arguments: message);
   }
 
   Future initPushNotifications() async {
@@ -47,7 +52,12 @@ class FirebaseApi {
     FirebaseMessaging.onMessage.listen((event) {
       final notification = event.notification;
       if (notification == null) return;
+      final notificationData = event.data;
 
+      final senderID = notificationData['senderID'];
+      final receiverID = notificationData['receiverID'];
+      api.getLatestMessageFromServer(
+          senderID: senderID, receiverID: receiverID);
       _local_notifications.show(
           notification.hashCode,
           notification.title,
@@ -59,7 +69,6 @@ class FirebaseApi {
             iOS: const DarwinNotificationDetails(),
           ),
           payload: jsonEncode(event.toMap()));
-      log('Local Notif : ${jsonEncode(event.toMap())}');
     });
   }
 

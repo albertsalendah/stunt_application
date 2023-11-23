@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_typing_uninitialized_variables, non_constant_identifier_names, use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
@@ -7,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:stunt_application/custom_widget/sendMessageCard.dart';
 import 'package:stunt_application/models/api_massage.dart';
 import 'package:stunt_application/models/message_model.dart';
@@ -20,6 +23,7 @@ import '../../utils/SessionManager.dart';
 import 'konsultasi_api.dart';
 
 class ChatPage extends StatefulWidget {
+  final senderID;
   final receverID;
   final receiverNama;
   final receiverKet;
@@ -27,6 +31,7 @@ class ChatPage extends StatefulWidget {
   final receiverFCM;
   const ChatPage(
       {super.key,
+      required this.senderID,
       required this.receverID,
       required this.receiverNama,
       required this.receiverKet,
@@ -57,7 +62,10 @@ class _ChatPageState extends State<ChatPage> {
       token = await SessionManager.getToken() ?? '';
       await fetchData();
       if (listMessage.isEmpty) {
+        log('List Empty');
         await fetchData();
+      } else {
+        log('List Fine');
       }
     });
     focusNode.addListener(() {
@@ -77,16 +85,21 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void onEmojiSelected(Emoji emoji) {
-    setState(() {
-      messageController.text = messageController.text + emoji.emoji;
-    });
+    messageController.text = messageController.text + emoji.emoji;
+    //setState(() {});
   }
 
   Future<void> fetchData() async {
+    log('Here : ${widget.receverID}');
     await context.read<KonsultasiBloc>().getIndividualMessage(
         senderID: user.userID.toString(),
-        receiverID: widget.receverID.toString(),
+        receiverID: user.userID.toString() != widget.receverID
+            ? widget.receverID.toString()
+            : widget.senderID,
         token: token);
+    await context
+        .read<KonsultasiBloc>()
+        .getLatestMesage(userID: user.userID.toString(), token: token);
   }
 
   void pickPicture() async {
@@ -129,9 +142,11 @@ class _ChatPageState extends State<ChatPage> {
         child: GestureDetector(
       onTap: () {
         FocusManager.instance.primaryFocus?.unfocus();
-        setState(() {
-          isEmojiVisible = false;
-        });
+        if (isEmojiVisible) {
+          setState(() {
+            isEmojiVisible = false;
+          });
+        }
       },
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 234, 243, 247),
@@ -192,7 +207,7 @@ class _ChatPageState extends State<ChatPage> {
                       await fetchData();
                     },
                     child: ListView.builder(
-                      shrinkWrap: true,
+                      //shrinkWrap: true,
                       reverse: true,
                       itemCount: listMessage.length,
                       itemBuilder: (context, index) {
@@ -211,91 +226,129 @@ class _ChatPageState extends State<ChatPage> {
               );
             },
           ),
-          Container(
+          Align(
             alignment: Alignment.bottomCenter,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(top: 4, bottom: 4),
-              padding: const EdgeInsets.only(right: 8, left: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                        focusNode: focusNode,
-                        controller: messageController,
-                        maxLines: 5,
-                        minLines: 1,
-                        decoration: InputDecoration(
-                          hintText: 'Message',
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                          prefixIcon: InkWell(
-                            onTap: () {
-                              focusNode.unfocus();
-                              focusNode.canRequestFocus = false;
-                              setState(() {
-                                isEmojiVisible = !isEmojiVisible;
-                              });
-                            },
-                            child: const Icon(
-                              Icons.emoji_emotions_outlined,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          suffixIcon: InkWell(
-                            onTap: () {
-                              pickPicture();
-                            },
-                            child: const Icon(
-                              Icons.attachment,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        )),
-                  ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      // listMessage.add(
-                      //   MessageModel(
-                      //     idmessage: '',
-                      //     idsender: user.userID,
-                      //     idreceiver: widget.sender.userID,
-                      //     tanggalkirim:
-                      //         DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                      //     jamkirim: DateFormat.Hm().format(DateTime.now()),
-                      //     message: messageController.text,
-                      //     image: foto,
-                      //     messageRead: 0,
-                      //   ),
-                      // );
-                      API_Massage result = await api.sendMessage(
-                          id_sender: user.userID.toString(),
-                          id_receiver: widget.receverID.toString(),
-                          message: messageController.text,
-                          image: foto,
-                          fcm_token: widget.receiverFCM.toString(),
-                          title: user.nama.toString(),
-                          token: token);
-                      if (result.status) {
-                        await fetchData();
-                      }
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      foto = '';
-                      messageController.clear();
-                    },
-                    child: const CircleAvatar(
-                      child: Icon(Icons.send),
+            child: Column(
+              children: [
+                if (foto.isNotEmpty) ...[
+                  Offstage(
+                    offstage: foto.isEmpty ||
+                        MediaQuery.of(context).viewInsets.bottom > 0,
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.linear,
+                      child: Container(
+                        height: 200,
+                        alignment: Alignment.center,
+                        margin: const EdgeInsets.all(8),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Stack(
+                              children: [
+                                Image.memory(base64Decode(foto)),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      foto = '';
+                                      setState(() {});
+                                    },
+                                    child: const CircleAvatar(
+                                        backgroundColor: Colors.red,
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                        )),
+                                  ),
+                                ),
+                              ],
+                            )),
+                      ),
                     ),
-                  ),
+                  )
                 ],
-              ),
+                Container(
+                  margin: const EdgeInsets.only(top: 4, bottom: 4),
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                            focusNode: focusNode,
+                            controller: messageController,
+                            maxLines: 5,
+                            minLines: 1,
+                            decoration: InputDecoration(
+                              hintText: 'Message',
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10.0),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30)),
+                              prefixIcon: InkWell(
+                                onTap: () {
+                                  focusNode.unfocus();
+                                  focusNode.canRequestFocus = false;
+                                  setState(() {
+                                    isEmojiVisible = !isEmojiVisible;
+                                  });
+                                },
+                                child: const Icon(
+                                  Icons.emoji_emotions_outlined,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              suffixIcon: InkWell(
+                                onTap: () {
+                                  pickPicture();
+                                },
+                                child: const Icon(
+                                  Icons.attachment,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          log('Chat Page id_receiver : ${widget.receiverFCM}');
+                          MessageModel result = await api.sendMessage(
+                              id_sender: user.userID.toString(),
+                              id_receiver:
+                                  user.userID.toString() != widget.receverID
+                                      ? widget.receverID.toString()
+                                      : widget.senderID,
+                              message: messageController.text,
+                              image: foto,
+                              fcm_token: widget.receiverFCM.toString(),
+                              title: user.nama.toString(),
+                              token: token);
+                          if (result.idmessage != null &&
+                              result.idmessage!.isNotEmpty) {
+                            await fetchData();
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            foto = '';
+                            messageController.clear();
+                            setState(() {});
+                            await api.saveMesagetoServer(
+                                entry: result,
+                                fcm_token: widget.receiverFCM.toString(),
+                                title: user.nama.toString(),
+                                token: token);
+                          }
+                        },
+                        child: const CircleAvatar(
+                          child: Icon(Icons.send),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           Offstage(

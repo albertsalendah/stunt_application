@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await fetch_user();
       token = await SessionManager.getToken() ?? '';
-      await fetch_data();
+     // await fetch_data();
       if (listAnak.isEmpty) {
         await fetch_data();
       }
@@ -88,13 +88,13 @@ class _HomeState extends State<Home> {
         await context.read<AllBloc>().getDataAnak(user: user, token: token);
       }
     }
-    String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    await context.read<AllBloc>().getMenuMakan(
-        userID: user.userID ?? '',
-        id_anak: dataAnak.id_anak ?? '',
-        tanggal: selectedDate,
-        token: token);
-    await context.read<AllBloc>().getRekomendasiMenu(token: token);
+    // String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // await context.read<AllBloc>().getMenuMakan(
+    //     userID: user.userID ?? '',
+    //     id_anak: dataAnak.id_anak ?? '',
+    //     tanggal: selectedDate,
+    //     token: token);
+    // await context.read<AllBloc>().getRekomendasiMenu(token: token);
   }
 
   @override
