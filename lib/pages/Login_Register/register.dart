@@ -42,6 +42,9 @@ class _RegisterState extends State<Register> {
   List<PlatformFile> picked_foto = [];
   Uint8List? imagebytes;
   String foto = '';
+  final ScrollController _scrollController = ScrollController();
+  List<GlobalKey<FormState>> keys =
+      List.generate(5, (index) => GlobalKey<FormState>());
 
   void clear_field() {
     nama.text = '';
@@ -56,6 +59,14 @@ class _RegisterState extends State<Register> {
       node.dispose();
     }
     super.dispose();
+  }
+
+  void autoScroll(GlobalKey key) {
+    if (key.currentContext != null) {
+      Scrollable.ensureVisible(key.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.decelerate);
+    }
   }
 
   void pickPicture() async {
@@ -108,8 +119,9 @@ class _RegisterState extends State<Register> {
                         'Untuk mendaftarkan akun anda, silahkan mengisi data dibawah ini'),
                 Expanded(
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom / 2),
+                        bottom: MediaQuery.of(context).viewInsets.bottom / 1.8),
                     reverse: false,
                     child: Column(
                       children: [
@@ -178,16 +190,26 @@ class _RegisterState extends State<Register> {
                                 padding: EdgeInsets.all(8.0),
                                 child: Text("Nama"),
                               ),
-                              TextFormField(
-                                controller: nama,
-                                focusNode: focusNodes[0],
-                                onEditingComplete: () =>
-                                    focusNodes[1].requestFocus(),
-                                keyboardType: TextInputType.name,
-                                decoration: InputDecoration(
-                                  hintText: 'masukkan nama lengkap',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (hasFocus) {
+                                    autoScroll(keys[0]);
+                                  }
+                                },
+                                child: TextFormField(
+                                  key: keys[0],
+                                  controller: nama,
+                                  focusNode: focusNodes[0],
+                                  onEditingComplete: () {
+                                    focusNodes[1].requestFocus();
+                                    autoScroll(keys[1]);
+                                  },
+                                  keyboardType: TextInputType.name,
+                                  decoration: InputDecoration(
+                                    hintText: 'masukkan nama lengkap',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -203,28 +225,39 @@ class _RegisterState extends State<Register> {
                                 padding: EdgeInsets.all(8.0),
                                 child: Text('No. WhatsApp'),
                               ),
-                              TextFormField(
-                                controller: no_wa,
-                                focusNode: focusNodes[1],
-                                onEditingComplete: () =>
-                                    focusNodes[2].requestFocus(),
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
-                                ],
-                                decoration: InputDecoration(
-                                  hintText: 'No. WhatsApp',
-                                  prefixIcon: const Padding(
-                                    padding: EdgeInsets.only(left: 8, right: 5),
-                                    child: Text(
-                                      '+62 |',
-                                      style: TextStyle(fontSize: 18),
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (hasFocus) {
+                                    autoScroll(keys[1]);
+                                  }
+                                },
+                                child: TextFormField(
+                                  key: keys[1],
+                                  controller: no_wa,
+                                  focusNode: focusNodes[1],
+                                  onEditingComplete: () {
+                                    focusNodes[2].requestFocus();
+                                    autoScroll(keys[2]);
+                                  },
+                                  keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
+                                  decoration: InputDecoration(
+                                    hintText: 'No. WhatsApp',
+                                    prefixIcon: const Padding(
+                                      padding:
+                                          EdgeInsets.only(left: 8, right: 5),
+                                      child: Text(
+                                        '+62 |',
+                                        style: TextStyle(fontSize: 18),
+                                      ),
                                     ),
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                      minWidth: 0, minHeight: 0),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                    prefixIconConstraints: const BoxConstraints(
+                                        minWidth: 0, minHeight: 0),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -240,33 +273,45 @@ class _RegisterState extends State<Register> {
                                 padding: EdgeInsets.all(8.0),
                                 child: Text('Email'),
                               ),
-                              TextFormField(
-                                controller: email,
-                                focusNode: focusNodes[2],
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
-                                onEditingComplete: () {
-                                  focusNodes[3].requestFocus();
-                                },
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
-                                  hintText: 'Email',
-                                  prefixIcon: const Icon(
-                                    Icons.email_outlined,
-                                    color: Colors.grey,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Silahkan isi email anda';
-                                  } else if (!isValidEmail(value)) {
-                                    return 'Format email salah';
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (hasFocus) {
+                                    autoScroll(keys[2]);
                                   }
-                                  return null;
                                 },
+                                child: TextFormField(
+                                  key: keys[2],
+                                  controller: email,
+                                  focusNode: focusNodes[2],
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  onEditingComplete: () {
+                                    focusNodes[3].requestFocus();
+                                    autoScroll(keys[3]);
+                                  },
+                                  onChanged: (value) {
+                                    autoScroll(keys[2]);
+                                  },
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: InputDecoration(
+                                    hintText: 'Email',
+                                    prefixIcon: const Icon(
+                                      Icons.email_outlined,
+                                      color: Colors.grey,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Silahkan isi email anda';
+                                    } else if (!isValidEmail(value)) {
+                                      return 'Format email salah';
+                                    }
+                                    return null;
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -280,32 +325,44 @@ class _RegisterState extends State<Register> {
                                 padding: EdgeInsets.all(8.0),
                                 child: Text('Kata Sandi'),
                               ),
-                              TextFormField(
-                                controller: pass,
-                                focusNode: focusNodes[3],
-                                onEditingComplete: () =>
-                                    focusNodes[4].requestFocus(),
-                                obscureText: !passwordVisible,
-                                decoration: InputDecoration(
-                                  hintText: 'masukkan kata sandi',
-                                  prefixIcon: const Icon(
-                                    Icons.lock_outline,
-                                    color: Colors.grey,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        passwordVisible = !passwordVisible;
-                                      });
-                                    },
-                                    icon: Icon(
-                                      !passwordVisible
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
+                              Focus(
+                                onFocusChange: (hasFocus) {
+                                  if (hasFocus) {
+                                    autoScroll(keys[3]);
+                                  }
+                                },
+                                child: TextFormField(
+                                  key: keys[3],
+                                  controller: pass,
+                                  focusNode: focusNodes[3],
+                                  onEditingComplete: () => FocusManager
+                                      .instance.primaryFocus
+                                      ?.unfocus(),
+                                  onChanged: (value){
+                                    autoScroll(keys[3]);
+                                  },
+                                  obscureText: !passwordVisible,
+                                  decoration: InputDecoration(
+                                    hintText: 'masukkan kata sandi',
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline,
+                                      color: Colors.grey,
                                     ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          passwordVisible = !passwordVisible;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        !passwordVisible
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -349,20 +406,21 @@ class _RegisterState extends State<Register> {
                                   sendConfirmEmail();
                                 }
                               } else {
-                                if (nama.text.isEmpty) {
-                                  focusNodes[0].requestFocus();
-                                } else if (no_wa.text.isEmpty) {
-                                  focusNodes[1].requestFocus();
-                                } else if (email.text.isEmpty) {
-                                  focusNodes[2].requestFocus();
-                                } else if (pass.text.isEmpty) {
-                                  focusNodes[3].requestFocus();
-                                }
                                 showDialog(
                                   context: context,
                                   builder: (context) => const PopUpError(
                                       message: 'Isi Semua Kolom'),
-                                );
+                                ).then((value) {
+                                  if (nama.text.isEmpty) {
+                                    focusNodes[0].requestFocus();
+                                  } else if (no_wa.text.isEmpty) {
+                                    focusNodes[1].requestFocus();
+                                  } else if (email.text.isEmpty) {
+                                    focusNodes[2].requestFocus();
+                                  } else if (pass.text.isEmpty) {
+                                    focusNodes[3].requestFocus();
+                                  }
+                                });
                               }
                             },
                             child: Center(
@@ -447,6 +505,14 @@ class _RegisterState extends State<Register> {
                   SharedPreferences.getInstance().then((prefs) async {
                     String storedCode = prefs.getString('randomCode') ?? '';
                     if (code == storedCode) {
+                      var conLoading;
+                      showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            conLoading = context;
+                            return const PopUpLoading();
+                          });
                       API_Message result = await api.registerUser(
                           nama: nama.text,
                           noHp: no_wa.text,
@@ -454,6 +520,7 @@ class _RegisterState extends State<Register> {
                           password: pass.text,
                           foto: foto,
                           fcm_token: '');
+                      Navigator.pop(conLoading);
                       if (result.status) {
                         Navigator.pop(con);
                         showDialog(

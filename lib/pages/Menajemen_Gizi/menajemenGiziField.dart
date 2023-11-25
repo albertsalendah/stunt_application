@@ -8,6 +8,7 @@ class MenajemenGiziField extends StatefulWidget {
   final TextEditingController mainController;
   final TextEditingController countController;
   final TextEditingController measurementController;
+  final VoidCallback onEditingComplete;
   const MenajemenGiziField(
       {super.key,
       required this.label,
@@ -16,13 +17,17 @@ class MenajemenGiziField extends StatefulWidget {
       required this.list,
       required this.mainController,
       required this.countController,
-      required this.measurementController});
+      required this.measurementController,
+      required this.onEditingComplete});
 
   @override
   State<MenajemenGiziField> createState() => _MenajemenGiziFieldState();
 }
 
 class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
+  FocusNode main = FocusNode();
+  FocusNode count = FocusNode();
+  FocusNode measure = FocusNode();
   @override
   void initState() {
     // TODO: implement initState
@@ -50,7 +55,11 @@ class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
               borderRadius: BorderRadius.circular(10)),
           child: Column(children: [
             TextField(
+              focusNode: main,
               controller: widget.mainController,
+              onEditingComplete: () {
+                count.requestFocus();
+              },
               decoration: InputDecoration(
                   hintText: 'Contoh : ${widget.hint}',
                   border: const UnderlineInputBorder(
@@ -61,7 +70,11 @@ class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
                 Expanded(
                   flex: 1,
                   child: TextField(
+                    focusNode: count,
                     controller: widget.countController,
+                    onEditingComplete: () {
+                      measure.requestFocus();
+                    },
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: false),
                     decoration: const InputDecoration(
@@ -70,82 +83,25 @@ class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
                 ),
                 Expanded(
                   flex: 1,
-                  child: TextFormField(
-                    controller: widget.measurementController,
-                    readOnly: true,
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration(
+                  child: Focus(
+                    focusNode: measure,
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) {
+                        showModal();
+                      }
+                    },
+                    child: TextFormField(
+                      controller: widget.measurementController,
+                      readOnly: true,
+                      textAlign: TextAlign.end,
+                      onChanged: (value) {
+                        widget.onEditingComplete;
+                      },
+                      decoration: InputDecoration(
                         hintText: widget.hintM,
                         border: InputBorder.none,
-                        suffixIcon: const Icon(Icons.arrow_drop_down)),
-                    onTap: () => showModalBottomSheet(
-                      context: context,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
+                        suffixIcon: const Icon(Icons.arrow_drop_down),
                       ),
-                      backgroundColor: Colors.white,
-                      builder: (BuildContext context) {
-                        return Column(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Expanded(
-                                          child: Text(
-                                        'Banyaknya',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      )),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: IconButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            icon: const Icon(Icons.close)),
-                                      )
-                                    ],
-                                  )),
-                            ),
-                            SizedBox(
-                              height: 335,
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: widget.list.length,
-                                itemBuilder: (context, index) {
-                                  return Padding(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                                    child: ListTile(
-                                      shape: RoundedRectangleBorder(
-                                        side: const BorderSide(
-                                            color: Colors.grey),
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      title: Text(widget.list[index]),
-                                      onTap: () {
-                                        widget.measurementController.text =
-                                            widget.list[index];
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
                     ),
                   ),
                 ),
@@ -154,6 +110,71 @@ class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
           ]),
         ),
       ],
+    );
+  }
+
+  showModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      backgroundColor: Colors.white,
+      builder: (BuildContext context) {
+        measure.unfocus();
+        return Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                          child: Text(
+                        'Banyaknya ${widget.label}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      )),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.close)),
+                      )
+                    ],
+                  )),
+            ),
+            SizedBox(
+              height: 335,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.list.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      title: Text(widget.list[index]),
+                      onTap: () {
+                        widget.measurementController.text = widget.list[index];
+                        Navigator.pop(context);
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -1,4 +1,6 @@
 // ignore_for_file: non_constant_identifier_names, use_build_context_synchronously
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -43,7 +45,6 @@ class _HomeState extends State<Home> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await fetch_user();
       token = await SessionManager.getToken() ?? '';
-      // await fetch_data();
       if (listAnak.isEmpty) {
         await fetch_data();
       }
@@ -202,8 +203,10 @@ class _HomeState extends State<Home> {
                   await fetch_data();
                 }
               },
-              initialSelection:
-                  dataAnak.id_anak != null ? dataAnak : listAnak.first,
+              initialSelection: dataAnak.id_anak != null
+                  ? listAnak.firstWhere(
+                      (element) => element.id_anak == dataAnak.id_anak)
+                  : listAnak.first,
               dropdownMenuEntries: listAnak
                   .map<DropdownMenuEntry<DataAnakModel>>((DataAnakModel item) {
                 return DropdownMenuEntry<DataAnakModel>(
@@ -304,7 +307,10 @@ class _HomeState extends State<Home> {
                     child: Visibility(
                       visible: (dataAnak.id_anak != null),
                       replacement: const Center(
-                          child: Text('Belum Ada Data Anak \nTap Disini',textAlign: TextAlign.center,)),
+                          child: Text(
+                        'Belum Ada Data Anak \nTap Disini',
+                        textAlign: TextAlign.center,
+                      )),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,

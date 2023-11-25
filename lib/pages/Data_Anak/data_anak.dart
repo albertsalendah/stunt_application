@@ -44,7 +44,10 @@ class _DataAnakState extends State<DataAnak> {
   String selected_gender = '';
   DataAnakModel dataAnak = DataAnakModel();
   FocusNode btnFocus = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   List<FocusNode> focusNodes = List.generate(6, (index) => FocusNode());
+  List<GlobalKey<FormState>> keys =
+      List.generate(6, (index) => GlobalKey<FormState>());
   List<String> gender = ['Laki-Laki', 'Perempuan'];
 
   @override
@@ -82,6 +85,14 @@ class _DataAnakState extends State<DataAnak> {
       node.dispose();
     }
     super.dispose();
+  }
+
+  void autoScroll(GlobalKey key) {
+    if (key.currentContext != null) {
+      Scrollable.ensureVisible(key.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.decelerate);
+    }
   }
 
   void clearfield() {
@@ -138,10 +149,11 @@ class _DataAnakState extends State<DataAnak> {
         showDialog(
           context: context,
           builder: (context) => PopUpSuccess(message: result.message ?? ''),
-        );
-        clearfield();
-        fetchData(user, token);
-        enable = false;
+        ).then((value) {
+          clearfield();
+          fetchData(user, token);
+          enable = false;
+        });
       } else {
         Navigator.pop(context);
         showDialog(
@@ -153,7 +165,6 @@ class _DataAnakState extends State<DataAnak> {
   }
 
   Future<void> updateDataAnak() async {
-    //api.addDataAnak(userID: userID, token: token)
     if (user.userID != null &&
         '${user.userID}'.isNotEmpty &&
         token.isNotEmpty &&
@@ -178,10 +189,11 @@ class _DataAnakState extends State<DataAnak> {
         showDialog(
           context: context,
           builder: (context) => PopUpSuccess(message: result.message ?? ''),
-        );
-        clearfield();
-        fetchData(user, token);
-        enable = false;
+        ).then((value) {
+          clearfield();
+          fetchData(user, token);
+          enable = false;
+        });
       } else {
         Navigator.pop(context);
         showDialog(
@@ -269,6 +281,7 @@ class _DataAnakState extends State<DataAnak> {
                           setData();
                         },
                         child: SingleChildScrollView(
+                          controller: _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
                           reverse: false,
                           child: Column(children: [
@@ -281,19 +294,24 @@ class _DataAnakState extends State<DataAnak> {
                                     padding: EdgeInsets.all(8.0),
                                     child: Text('Nama anak'),
                                   ),
-                                  TextFormField(
-                                    controller: nama_anak,
-                                    enabled: enable,
+                                  Focus(
+                                    key: keys[0],
                                     focusNode: focusNodes[0],
-                                    onEditingComplete: () =>
-                                        FocusScope.of(context).nextFocus(),
-                                    decoration: InputDecoration(
-                                      hintText: 'nama lengkap anak',
-                                      prefixIconConstraints:
-                                          const BoxConstraints(
-                                              minWidth: 0, minHeight: 0),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
+                                    child: TextFormField(
+                                      controller: nama_anak,
+                                      enabled: enable,
+                                      onEditingComplete: () {
+                                        focusNodes[1].requestFocus();
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'nama lengkap anak',
+                                        prefixIconConstraints:
+                                            const BoxConstraints(
+                                                minWidth: 0, minHeight: 0),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -309,32 +327,39 @@ class _DataAnakState extends State<DataAnak> {
                                     padding: EdgeInsets.all(8.0),
                                     child: Text('Jenis Kelamin'),
                                   ),
-                                  DropdownMenu<String>(
-                                    enabled: enable,
-                                    width:
-                                        MediaQuery.of(context).size.width - 30,
-                                    inputDecorationTheme: InputDecorationTheme(
+                                  Focus(
+                                    key: keys[1],
+                                    focusNode: focusNodes[1],
+                                    child: DropdownMenu<String>(
+                                      enabled: enable,
+                                      width: MediaQuery.of(context).size.width -
+                                          30,
+                                      inputDecorationTheme:
+                                          InputDecorationTheme(
                                         border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                    onSelected: (String? value) {
-                                      setState(() {
-                                        if (value != null) {
-                                          selected_gender = value;
-                                        }
-                                      });
-                                      FocusScope.of(context).nextFocus();
-                                    },
-                                    initialSelection: dataAnak.id_anak != null
-                                        ? gender.firstWhere((element) =>
-                                            element == dataAnak.jeniskelamin)
-                                        : gender.first,
-                                    dropdownMenuEntries: gender
-                                        .map<DropdownMenuEntry<String>>(
-                                            (String value) {
-                                      return DropdownMenuEntry<String>(
-                                          value: value, label: value);
-                                    }).toList(),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      onSelected: (String? value) {
+                                        setState(() {
+                                          if (value != null) {
+                                            selected_gender = value;
+                                          }
+                                        });
+                                        focusNodes[2].requestFocus();
+                                      },
+                                      initialSelection: dataAnak.id_anak != null
+                                          ? gender.firstWhere((element) =>
+                                              element == dataAnak.jeniskelamin)
+                                          : gender.first,
+                                      dropdownMenuEntries: gender
+                                          .map<DropdownMenuEntry<String>>(
+                                              (String value) {
+                                        return DropdownMenuEntry<String>(
+                                            value: value, label: value);
+                                      }).toList(),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -348,34 +373,36 @@ class _DataAnakState extends State<DataAnak> {
                                     padding: EdgeInsets.all(8.0),
                                     child: Text('Tanggal Lahir'),
                                   ),
-                                  TextField(
-                                      controller: tgl_lahir,
-                                      enabled: enable,
-                                      focusNode: focusNodes[1],
-                                      onEditingComplete: () =>
-                                          FocusScope.of(context).nextFocus(),
-                                      decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          suffixIcon:
-                                              Icon(Icons.calendar_today),
-                                          hintText: 'Masukkan tanggal lahir'),
-                                      readOnly: true,
-                                      onTap: () async {
-                                        DateTime? pickedDate =
-                                            await showDatePicker(
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(1960),
-                                                lastDate: DateTime(2101));
-                                        if (pickedDate != null) {
-                                          String formattedDate =
-                                              DateFormat('dd MMMM yyyy')
-                                                  .format(pickedDate);
-                                          setState(() {
-                                            tgl_lahir.text = formattedDate;
-                                          });
-                                        }
-                                      })
+                                  Focus(
+                                    key: keys[2],
+                                    focusNode: focusNodes[2],
+                                    child: TextField(
+                                        controller: tgl_lahir,
+                                        enabled: enable,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            suffixIcon:
+                                                Icon(Icons.calendar_today),
+                                            hintText: 'Masukkan tanggal lahir'),
+                                        readOnly: true,
+                                        onTap: () async {
+                                          DateTime? pickedDate =
+                                              await showDatePicker(
+                                                  context: context,
+                                                  initialDate: DateTime.now(),
+                                                  firstDate: DateTime(1960),
+                                                  lastDate: DateTime(2101));
+                                          if (pickedDate != null) {
+                                            String formattedDate =
+                                                DateFormat('dd MMMM yyyy')
+                                                    .format(pickedDate);
+                                            setState(() {
+                                              tgl_lahir.text = formattedDate;
+                                              focusNodes[3].requestFocus();
+                                            });
+                                          }
+                                        }),
+                                  )
                                 ],
                               ),
                             ),
@@ -393,33 +420,45 @@ class _DataAnakState extends State<DataAnak> {
                                           padding: EdgeInsets.all(8.0),
                                           child: Text('Berat Badan'),
                                         ),
-                                        TextFormField(
-                                          controller: berat_badan,
-                                          enabled: enable,
-                                          focusNode: focusNodes[2],
-                                          onEditingComplete: () =>
-                                              FocusScope.of(context)
-                                                  .nextFocus(),
-                                          keyboardType: const TextInputType
-                                              .numberWithOptions(decimal: true),
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.allow(
-                                                RegExp(r'^\d*\.?\d*')),
-                                          ],
-                                          decoration: InputDecoration(
-                                            hintText: '0',
-                                            suffixIconConstraints:
-                                                const BoxConstraints(
-                                                    minWidth: 0, minHeight: 0),
-                                            suffixIcon: const Text(
-                                              ' | Kg ',
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: Colors.grey),
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
+                                        Focus(
+                                          key: keys[3],
+                                          focusNode: focusNodes[3],
+                                          onFocusChange: (hasFocus) {
+                                            if (hasFocus) {
+                                              autoScroll(keys[3]);
+                                            }
+                                          },
+                                          child: TextFormField(
+                                            controller: berat_badan,
+                                            enabled: enable,
+                                            onEditingComplete: () =>
+                                                focusNodes[4].requestFocus(),
+                                            onChanged: (value) {
+                                              autoScroll(keys[3]);
+                                            },
+                                            keyboardType: const TextInputType
+                                                .numberWithOptions(
+                                                decimal: true),
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.allow(
+                                                  RegExp(r'^\d*\.?\d*')),
+                                            ],
+                                            decoration: InputDecoration(
+                                              hintText: '0',
+                                              suffixIconConstraints:
+                                                  const BoxConstraints(
+                                                      minWidth: 0,
+                                                      minHeight: 0),
+                                              suffixIcon: const Text(
+                                                ' | Kg ',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.grey),
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -439,33 +478,45 @@ class _DataAnakState extends State<DataAnak> {
                                           padding: EdgeInsets.all(8.0),
                                           child: Text('Panjang badan'),
                                         ),
-                                        TextFormField(
-                                          controller: panjang_badan,
-                                          enabled: enable,
-                                          focusNode: focusNodes[3],
-                                          onEditingComplete: () =>
-                                              FocusScope.of(context)
-                                                  .nextFocus(),
-                                          keyboardType: const TextInputType
-                                              .numberWithOptions(decimal: true),
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.allow(
-                                                RegExp(r'^\d*\.?\d*')),
-                                          ],
-                                          decoration: InputDecoration(
-                                            hintText: '0',
-                                            suffixIconConstraints:
-                                                const BoxConstraints(
-                                                    minWidth: 0, minHeight: 0),
-                                            suffixIcon: const Text(
-                                              ' | Cm ',
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: Colors.grey),
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
+                                        Focus(
+                                          key: keys[4],
+                                          focusNode: focusNodes[4],
+                                          onFocusChange: (hasFocus) {
+                                            if (hasFocus) {
+                                              autoScroll(keys[4]);
+                                            }
+                                          },
+                                          child: TextFormField(
+                                            controller: panjang_badan,
+                                            enabled: enable,
+                                            onEditingComplete: () =>
+                                                focusNodes[5].requestFocus(),
+                                            onChanged: (value) {
+                                              autoScroll(keys[4]);
+                                            },
+                                            keyboardType: const TextInputType
+                                                .numberWithOptions(
+                                                decimal: true),
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.allow(
+                                                  RegExp(r'^\d*\.?\d*')),
+                                            ],
+                                            decoration: InputDecoration(
+                                              hintText: '0',
+                                              suffixIconConstraints:
+                                                  const BoxConstraints(
+                                                      minWidth: 0,
+                                                      minHeight: 0),
+                                              suffixIcon: const Text(
+                                                ' | Cm ',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.grey),
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -484,12 +535,20 @@ class _DataAnakState extends State<DataAnak> {
                                     padding: EdgeInsets.all(8.0),
                                     child: Text('Lingkar Kepala'),
                                   ),
-                                  TextFormField(
+                                  Focus(
+                                    key: keys[5],
+                                    focusNode: focusNodes[5],
+                                    onFocusChange: (hasFocus) {
+                                      autoScroll(keys[5]);
+                                    },
+                                    child: TextFormField(
                                       controller: lingkar_kepala,
                                       enabled: enable,
-                                      focusNode: focusNodes[4],
                                       onEditingComplete: () =>
                                           btnFocus.requestFocus(),
+                                      onChanged: (value) {
+                                        autoScroll(keys[5]);
+                                      },
                                       keyboardType:
                                           const TextInputType.numberWithOptions(
                                               decimal: true),
@@ -498,19 +557,22 @@ class _DataAnakState extends State<DataAnak> {
                                             RegExp(r'^\d*\.?\d*')),
                                       ],
                                       decoration: InputDecoration(
-                                          hintText: '0',
-                                          suffixIconConstraints:
-                                              const BoxConstraints(
-                                                  minWidth: 0, minHeight: 0),
-                                          suffixIcon: const Text(
-                                            ' | Cm ',
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color: Colors.grey),
-                                          ),
-                                          border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)))),
+                                        hintText: '0',
+                                        suffixIconConstraints:
+                                            const BoxConstraints(
+                                                minWidth: 0, minHeight: 0),
+                                        suffixIcon: const Text(
+                                          ' | Cm ',
+                                          style: TextStyle(
+                                              fontSize: 18, color: Colors.grey),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -518,7 +580,7 @@ class _DataAnakState extends State<DataAnak> {
                               padding: EdgeInsets.only(
                                   bottom:
                                       MediaQuery.of(context).viewInsets.bottom /
-                                          2),
+                                          1.8),
                             )
                           ]),
                         ),
@@ -611,24 +673,26 @@ class _DataAnakState extends State<DataAnak> {
                                           }
                                         }
                                       } else {
-                                        if (nama_anak.text.isEmpty) {
-                                          focusNodes[0].requestFocus();
-                                        } else if (tgl_lahir.text.isEmpty) {
-                                          focusNodes[1].requestFocus();
-                                        } else if (berat_badan.text.isEmpty) {
-                                          focusNodes[2].requestFocus();
-                                        } else if (panjang_badan.text.isEmpty) {
-                                          focusNodes[3].requestFocus();
-                                        } else if (lingkar_kepala
-                                            .text.isEmpty) {
-                                          focusNodes[4].requestFocus();
-                                        }
                                         showDialog(
                                           context: context,
                                           builder: (context) =>
                                               const PopUpError(
                                                   message: 'Isi Semua Kolom'),
-                                        );
+                                        ).then((value) {
+                                          if (nama_anak.text.isEmpty) {
+                                            focusNodes[0].requestFocus();
+                                          } else if (tgl_lahir.text.isEmpty) {
+                                            focusNodes[2].requestFocus();
+                                          } else if (berat_badan.text.isEmpty) {
+                                            focusNodes[3].requestFocus();
+                                          } else if (panjang_badan
+                                              .text.isEmpty) {
+                                            focusNodes[4].requestFocus();
+                                          } else if (lingkar_kepala
+                                              .text.isEmpty) {
+                                            focusNodes[5].requestFocus();
+                                          }
+                                        });
                                       }
                                     },
                                     child: Center(

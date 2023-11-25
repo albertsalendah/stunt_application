@@ -1,6 +1,6 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:stunt_application/utils/check_foto.dart';
-import 'dart:io';
 import '../models/user.dart';
 import '../pages/Konsultasi/chat_page.dart';
 
@@ -14,16 +14,12 @@ class ContactCard extends StatefulWidget {
 
 class _ContactCardState extends State<ContactCard> {
   String foto = '';
-  File imageFile = File('');
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      imageFile = await Foto().check(widget.user);
-      setState(() {});
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {});
   }
 
   @override
@@ -91,7 +87,11 @@ class _ContactCardState extends State<ContactCard> {
                                 widget.user.foto!.isNotEmpty
                             ? DecorationImage(
                                 fit: BoxFit.cover,
-                                image: FileImage(imageFile),
+                                image: MemoryImage(
+                                  base64Decode(
+                                    widget.user.foto.toString(),
+                                  ),
+                                ),
                               )
                             : const DecorationImage(
                                 fit: BoxFit.cover,

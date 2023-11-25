@@ -85,6 +85,10 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
   List<String> listSatuanMinuman = ['Gelas', 'Cangkir'];
 
   FocusNode timeFocus = FocusNode();
+  List<FocusNode> focusNodes = List.generate(8, (index) => FocusNode());
+  final ScrollController _scrollController = ScrollController();
+  List<GlobalKey<FormState>> keys =
+      List.generate(8, (index) => GlobalKey<FormState>());
 
   @override
   void initState() {
@@ -100,6 +104,23 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
       }
       setMenuMakan();
     });
+  }
+
+  @override
+  void dispose() {
+    timeFocus.dispose();
+    for (var node in focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  void autoScroll(GlobalKey key) {
+    if (key.currentContext != null) {
+      Scrollable.ensureVisible(key.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.decelerate);
+    }
   }
 
   Future<User> fetch_user() async {
@@ -448,74 +469,140 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Makanan Pokok',
-                              hint: 'Nasi',
-                              hintM: listSatuanMakan[5],
-                              list: listSatuanMakan,
-                              mainController: makananPokok,
-                              countController: makananPokokCount,
-                              measurementController: makananPokokMeasure),
+                          Focus(
+                            key: keys[0],
+                            focusNode: focusNodes[0],
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                autoScroll(keys[0]);
+                              }
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Makanan Pokok',
+                                hint: 'Nasi',
+                                hintM: listSatuanMakan[5],
+                                list: listSatuanMakan,
+                                mainController: makananPokok,
+                                countController: makananPokokCount,
+                                measurementController: makananPokokMeasure,
+                                onEditingComplete: () {
+                                  focusNodes[1].requestFocus();
+                                }),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Sayur',
-                              hint: 'Bayam',
-                              hintM: listSatuanMakan[4],
-                              list: listSatuanMakan,
-                              mainController: sayur,
-                              countController: sayurCount,
-                              measurementController: sayurMeasure),
+                          Focus(
+                            key: keys[1],
+                            focusNode: focusNodes[1],
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                autoScroll(keys[1]);
+                              }
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Sayur',
+                                hint: 'Bayam',
+                                hintM: listSatuanMakan[4],
+                                list: listSatuanMakan,
+                                mainController: sayur,
+                                countController: sayurCount,
+                                measurementController: sayurMeasure,
+                                onEditingComplete: () {
+                                  focusNodes[2].requestFocus();
+                                }),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Lauk Hewani',
-                              hint: 'Ikan',
-                              hintM: listSatuanMakan[3],
-                              list: listSatuanMakan,
-                              mainController: laukHewani,
-                              countController: laukHewaniCount,
-                              measurementController: laukHewaniMeasure),
+                          Focus(
+                            key: keys[2],
+                            focusNode: focusNodes[2],
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                autoScroll(keys[2]);
+                              }
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Lauk Hewani',
+                                hint: 'Ikan',
+                                hintM: listSatuanMakan[3],
+                                list: listSatuanMakan,
+                                mainController: laukHewani,
+                                countController: laukHewaniCount,
+                                measurementController: laukHewaniMeasure,
+                                onEditingComplete: () {
+                                  focusNodes[3].requestFocus();
+                                }),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Lauk Nabati',
-                              hint: 'Tahu',
-                              hintM: listSatuanMakan[3],
-                              list: listSatuanMakan,
-                              mainController: laukNabati,
-                              countController: laukNabatiCount,
-                              measurementController: laukNabatiMeasure),
+                          Focus(
+                            key: keys[3],
+                            focusNode: focusNodes[3],
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                autoScroll(keys[3]);
+                              }
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Lauk Nabati',
+                                hint: 'Tahu',
+                                hintM: listSatuanMakan[3],
+                                list: listSatuanMakan,
+                                mainController: laukNabati,
+                                countController: laukNabatiCount,
+                                measurementController: laukNabatiMeasure,
+                                onEditingComplete: () {
+                                  focusNodes[4].requestFocus();
+                                }),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Buah',
-                              hint: 'Apel',
-                              hintM: listSatuanMakan[6],
-                              list: listSatuanMakan,
-                              mainController: buah,
-                              countController: buahCount,
-                              measurementController: buahMeasure),
+                          Focus(
+                            key: keys[4],
+                            focusNode: focusNodes[4],
+                            onFocusChange: (hasFocus) {
+                              autoScroll(keys[4]);
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Buah',
+                                hint: 'Apel',
+                                hintM: listSatuanMakan[6],
+                                list: listSatuanMakan,
+                                mainController: buah,
+                                countController: buahCount,
+                                measurementController: buahMeasure,
+                                onEditingComplete: () {
+                                  focusNodes[5].requestFocus();
+                                }),
+                          ),
                           const SizedBox(
                             height: 16,
                           ),
-                          MenajemenGiziField(
-                              label: 'Minuman',
-                              hint: 'Susu',
-                              hintM: listSatuanMinuman[0],
-                              list: listSatuanMinuman,
-                              mainController: minuman,
-                              countController: minumanCount,
-                              measurementController: minumanMeasure),
+                          Focus(
+                            key: keys[5],
+                            focusNode: focusNodes[5],
+                            onFocusChange: (hasFocus) {
+                              autoScroll(keys[5]);
+                            },
+                            child: MenajemenGiziField(
+                                label: 'Minuman',
+                                hint: 'Susu',
+                                hintM: listSatuanMinuman[0],
+                                list: listSatuanMinuman,
+                                mainController: minuman,
+                                countController: minumanCount,
+                                measurementController: minumanMeasure,
+                                onEditingComplete: () {}),
+                          ),
                           Padding(
                             padding: EdgeInsets.only(
                                 bottom:
                                     MediaQuery.of(context).viewInsets.bottom /
-                                        2),
+                                        3),
                           )
                         ],
                       ),
@@ -851,6 +938,8 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                                     String formattedTime =
                                         DateFormat.Hm().format(newDateTime);
                                     jamMakan.text = formattedTime;
+                                    focusNodes[0].requestFocus();
+                                    autoScroll(keys[0]);
                                   });
                                 },
                               ),

@@ -23,6 +23,7 @@ class _PopUpConfirmCodeState extends State<PopUpConfirmCode> {
   Widget build(BuildContext context) {
     TextEditingController confirmCode = TextEditingController();
     return AlertDialog(
+      clipBehavior: Clip.hardEdge,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20))),
       content: Wrap(
