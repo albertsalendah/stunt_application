@@ -13,7 +13,7 @@ import 'package:stunt_application/models/user.dart';
 import 'package:stunt_application/pages/Data_Anak/data_anak_api.dart';
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../custom_widget/popup_error.dart';
 import '../../models/data_anak_model.dart';
 import '../../utils/SessionManager.dart';
@@ -69,7 +69,9 @@ class _DataAnakState extends State<DataAnak> {
         tambah = true;
         enable = true;
       }
-      setState(() {});
+      setState(() {
+        selected_gender = gender.first;
+      });
     });
   }
 
@@ -88,7 +90,7 @@ class _DataAnakState extends State<DataAnak> {
     berat_badan.text = '';
     panjang_badan.text = '';
     lingkar_kepala.text = '';
-    selected_gender = '';
+    selected_gender = gender.first;
   }
 
   Future<void> fetchData(User user, String token) async {
@@ -122,7 +124,7 @@ class _DataAnakState extends State<DataAnak> {
         panjang_badan.text.isNotEmpty &&
         lingkar_kepala.text.isNotEmpty &&
         selected_gender.isNotEmpty) {
-      API_Massage result = await api.addDataAnak(
+      API_Message result = await api.addDataAnak(
           userID: user.userID ?? '',
           namaAnak: nama_anak.text,
           jenisKelamin: selected_gender,
@@ -161,7 +163,7 @@ class _DataAnakState extends State<DataAnak> {
         panjang_badan.text.isNotEmpty &&
         lingkar_kepala.text.isNotEmpty &&
         selected_gender.isNotEmpty) {
-      API_Massage result = await api.updateDataAnak(
+      API_Message result = await api.updateDataAnak(
           id_anak: dataAnak.id_anak ?? '',
           userID: user.userID ?? '',
           namaAnak: nama_anak.text,
@@ -480,7 +482,7 @@ class _DataAnakState extends State<DataAnak> {
                                 children: [
                                   const Padding(
                                     padding: EdgeInsets.all(8.0),
-                                    child: Text('Lingkar kepala saat lahir'),
+                                    child: Text('Lingkar Kepala'),
                                   ),
                                   TextFormField(
                                       controller: lingkar_kepala,
@@ -572,18 +574,41 @@ class _DataAnakState extends State<DataAnak> {
                                             ),
                                           );
                                         } else {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => PopUpConfirm(
-                                              btnConfirmText: 'Ubah',
-                                              btnCancelText: 'Batal',
-                                              title: 'Ubah Data Anak',
-                                              message: 'Ubah Data Anak?',
-                                              onPressed: () async {
-                                                await updateDataAnak();
-                                              },
-                                            ),
-                                          );
+                                          if (dataAnak.id_anak != null &&
+                                              dataAnak.id_anak
+                                                  .toString()
+                                                  .isNotEmpty) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) =>
+                                                  PopUpConfirm(
+                                                btnConfirmText: 'Ubah',
+                                                btnCancelText: 'Batal',
+                                                title: 'Ubah Data Anak',
+                                                message: 'Ubah Data Anak?',
+                                                onPressed: () async {
+                                                  await updateDataAnak();
+                                                },
+                                              ),
+                                            );
+                                          } else {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) =>
+                                                  PopUpConfirm(
+                                                btnConfirmText: 'Simpan',
+                                                btnCancelText: 'Batal',
+                                                title: 'Simpan Data Anak',
+                                                message: 'Simpan Data Anak?',
+                                                onPressed: () async {
+                                                  await addDataAnak();
+                                                  if (widget.afterRegister) {
+                                                    await checkUser();
+                                                  }
+                                                },
+                                              ),
+                                            );
+                                          }
                                         }
                                       } else {
                                         if (nama_anak.text.isEmpty) {
@@ -611,9 +636,13 @@ class _DataAnakState extends State<DataAnak> {
                                         (widget.afterRegister)
                                             ? 'Selanjutnya'
                                             : !tambah
-                                                ? 'Update'
+                                                ? dataAnak.id_anak != null
+                                                    ? 'Update'
+                                                    : 'Simpan'
                                                 : 'Simpan',
-                                        style: TextStyle(fontSize: 16 * ffem),
+                                        style: TextStyle(
+                                            fontSize: 16 * ffem,
+                                            color: Colors.white),
                                       ),
                                     ),
                                   ),

@@ -127,48 +127,51 @@ class _BotomSheetDatePickerState extends State<BotomSheetDatePicker> {
                                 thickness: 1,
                                 color: Colors.grey,
                               ),
-                              TableCalendar(
-                                firstDay: DateTime(2000),
-                                lastDay: DateTime(2050),
-                                focusedDay: DateTime.now(),
-                                calendarFormat: CalendarFormat.month,
-                                availableCalendarFormats: const {
-                                  CalendarFormat.month: "Month"
-                                },
-                                headerStyle:
-                                    const HeaderStyle(titleCentered: true),
-                                calendarStyle: CalendarStyle(
-                                  selectedDecoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  todayDecoration: const BoxDecoration(
-                                    color: Color(0xff3f7af6),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                onDaySelected: (date, focusedDay) {
-                                  localTextController.text =
-                                      DateFormat('dd MMMM yyyy')
-                                          .format(date)
-                                          .toString();
-                                  selectedTgl = date;
-                                  widget.onSelected(
-                                      '${DateFormat('yyyy-MM-dd').format(selectedTgl)} ${textTimeController.text}');
-                                  Navigator.pop(context);
-                                },
-                                calendarBuilders: CalendarBuilders(
-                                  selectedBuilder: (context, date, _) =>
-                                      Container(
-                                    decoration: BoxDecoration(
+                              Container(
+                                color: Colors.white,
+                                child: TableCalendar(
+                                  firstDay: DateTime(2000),
+                                  lastDay: DateTime(2050),
+                                  focusedDay: DateTime.now(),
+                                  calendarFormat: CalendarFormat.month,
+                                  availableCalendarFormats: const {
+                                    CalendarFormat.month: "Month"
+                                  },
+                                  headerStyle:
+                                      const HeaderStyle(titleCentered: true),
+                                  calendarStyle: CalendarStyle(
+                                    selectedDecoration: BoxDecoration(
                                       color: Theme.of(context).primaryColor,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        date.day.toString(),
-                                        style: const TextStyle(
-                                            color: Colors.white),
+                                    todayDecoration: const BoxDecoration(
+                                      color: Color(0xff3f7af6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  onDaySelected: (date, focusedDay) {
+                                    localTextController.text =
+                                        DateFormat('dd MMMM yyyy')
+                                            .format(date)
+                                            .toString();
+                                    selectedTgl = date;
+                                    widget.onSelected(
+                                        '${DateFormat('yyyy-MM-dd').format(selectedTgl)} ${textTimeController.text}');
+                                    Navigator.pop(context);
+                                  },
+                                  calendarBuilders: CalendarBuilders(
+                                    selectedBuilder: (context, date, _) =>
+                                        Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          date.day.toString(),
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -244,8 +247,9 @@ class _BotomSheetDatePickerState extends State<BotomSheetDatePicker> {
                                       ],
                                     )),
                               ),
-                              SizedBox(
+                              Container(
                                 height: 230,
+                                color: Colors.white,
                                 child: Column(
                                   children: [
                                     Expanded(

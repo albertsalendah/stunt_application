@@ -2,16 +2,14 @@
 
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stunt_application/custom_widget/sendMessageCard.dart';
-import 'package:stunt_application/models/api_massage.dart';
 import 'package:stunt_application/models/message_model.dart';
 
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
@@ -384,7 +382,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       child: SizedBox(
         width: 348 * fem,
-        height: 94 * fem,
+        height: 96 * fem,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -392,7 +390,7 @@ class _ChatPageState extends State<ChatPage> {
             Container(
               margin:
                   EdgeInsets.fromLTRB(0 * fem, 0.5 * fem, 73 * fem, 0 * fem),
-              height: 39 * fem,
+              height: 41 * fem,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

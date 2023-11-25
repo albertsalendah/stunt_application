@@ -70,7 +70,7 @@ class ImunisasiAPI {
     }
   }
 
-  Future<API_Massage> tambahJadwalVaksin(
+  Future<API_Message> tambahJadwalVaksin(
       {required String id_anak,
       required String userID,
       required String lokasi,
@@ -89,7 +89,7 @@ class ImunisasiAPI {
           "tipe_vaksin": tipe_vaksin
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -98,7 +98,7 @@ class ImunisasiAPI {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 

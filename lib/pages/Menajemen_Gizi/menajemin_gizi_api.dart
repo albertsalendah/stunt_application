@@ -73,7 +73,7 @@ class MenajemenGiziApi {
     }
   }
 
-  Future<API_Massage> addMenuMakan(
+  Future<API_Message> addMenuMakan(
       {required String id_anak,
       required String userID,
       required int menu_makan,
@@ -128,7 +128,7 @@ class MenajemenGiziApi {
           'satuan_minuman': satuan_minuman
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -137,11 +137,11 @@ class MenajemenGiziApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 
-  Future<API_Massage> updateMenuMakan(
+  Future<API_Message> updateMenuMakan(
       {required String id_menu,
       required String jam_makan,
       String? makan_pokok,
@@ -190,7 +190,7 @@ class MenajemenGiziApi {
           'satuan_minuman': satuan_minuman
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -199,7 +199,7 @@ class MenajemenGiziApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 }

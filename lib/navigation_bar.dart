@@ -10,13 +10,13 @@ import 'package:stunt_application/pages/Home/home.dart';
 import 'package:stunt_application/pages/Imunisasi/imunisasi.dart';
 import 'package:stunt_application/pages/Konsultasi/konsultasi.dart';
 
-import '../Bloc/AllBloc/all_bloc.dart';
-import '../Bloc/KonsultasiBloc/konsultasiBloc.dart';
-import '../Bloc/LogIn/login_bloc.dart';
-import '../models/data_anak_model.dart';
-import '../models/user.dart';
-import '../utils/SessionManager.dart';
-import '../utils/config.dart';
+import 'Bloc/AllBloc/all_bloc.dart';
+import 'Bloc/KonsultasiBloc/konsultasiBloc.dart';
+import 'Bloc/LogIn/login_bloc.dart';
+import 'models/data_anak_model.dart';
+import 'models/user.dart';
+import 'utils/SessionManager.dart';
+import 'utils/config.dart';
 
 class Navigationbar extends StatefulWidget {
   final int index;
@@ -45,8 +45,8 @@ class _NavigationbarState extends State<Navigationbar> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       token = await SessionManager.getToken() ?? '';
       user = await SessionManager.getUser();
-      await fetchdata();
       dataAnak = await SessionManager.getDataAnak();
+      await fetchdata();
       Duration duration = token.isNotEmpty
           ? JwtDecoder.getRemainingTime(token)
           : const Duration(minutes: 0);
@@ -68,7 +68,6 @@ class _NavigationbarState extends State<Navigationbar> {
     await context.read<AllBloc>().getDataAnak(user: user, token: token);
     await context.read<AllBloc>().getDataTabelStatusGizi(
         jenisKelamin: dataAnak.jeniskelamin ?? '', token: token);
-
     if (dataAnak.id_anak != null) {
       await context.read<AllBloc>().getDetailDataAnak(
           user: user, id_anak: dataAnak.id_anak ?? '', token: token);
@@ -84,7 +83,6 @@ class _NavigationbarState extends State<Navigationbar> {
         tanggal: selectedDate,
         token: token);
     await context.read<AllBloc>().getRekomendasiMenu(token: token);
-    await context.read<KonsultasiBloc>().getDataHealthWorker(token: token);
   }
 
   @override

@@ -39,7 +39,7 @@ class PopUpConfirm extends StatelessWidget {
                         height: 65 * fem,
                         width: 65 * fem,
                         decoration: BoxDecoration(
-                          color: Colors.amberAccent, //const Color(0xffebf1fe),
+                          color: Colors.amberAccent, 
                           borderRadius:
                               BorderRadius.circular(12.228260994 * fem),
                         ),
@@ -69,7 +69,6 @@ class PopUpConfirm extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            // penjelasansingkatintepretasiad (345:2493)
                             constraints: BoxConstraints(
                               maxWidth: 197 * fem,
                             ),
@@ -103,7 +102,10 @@ class PopUpConfirm extends StatelessWidget {
                             onPressed: () {
                               onPressed();
                             },
-                            child: Text(btnConfirmText)),
+                            child: Text(
+                              btnConfirmText,
+                              style: const TextStyle(color: Colors.white),
+                            )),
                       ),
                     ),
                     const SizedBox(
@@ -121,7 +123,8 @@ class PopUpConfirm extends StatelessWidget {
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text(btnCancelText)),
+                            child: Text(btnCancelText,
+                                style: const TextStyle(color: Colors.white))),
                       ),
                     ),
                   ],

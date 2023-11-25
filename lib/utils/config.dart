@@ -17,7 +17,7 @@ class Configs {
       Timer.periodic(duration, (timer) async {
         timer.cancel();
         await loginBloc.logout();
-        log('SESSION');
+        log('SESSION => $timer');
       });
     } catch (e) {
       log('ERROR : $e');

@@ -89,7 +89,10 @@ class PopUpError extends StatelessWidget {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Tutup')),
+                      child: const Text(
+                        'Tutup',
+                        style: TextStyle(color: Colors.white),
+                      )),
                 )
               ],
             ),

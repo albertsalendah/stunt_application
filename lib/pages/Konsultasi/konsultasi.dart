@@ -1,8 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'dart:developer';
-
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/custom_widget/chat_card.dart';
@@ -12,7 +8,7 @@ import 'package:stunt_application/pages/Konsultasi/daftar_health_worker.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiState.dart';
 import '../../custom_widget/blue_header_02.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../models/user.dart';
 import '../../utils/SessionManager.dart';
 
@@ -52,9 +48,6 @@ class _KonsultasiState extends State<Konsultasi> {
     double baseWidth = 375;
     double fem = MediaQuery.of(context).size.width / baseWidth;
     double ffem = fem * 0.97;
-    RemoteMessage? message =
-        ModalRoute.of(context)!.settings.arguments as RemoteMessage?;
-    log("Payload Data : ${message?.data}");
     return SafeArea(
       child: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -66,7 +59,7 @@ class _KonsultasiState extends State<Konsultasi> {
               shadowColor: Colors.transparent,
               iconTheme: const IconThemeData(color: Colors.grey),
               title: Text(
-                'Konsultasi Gizi ${message?.notification?.body}',
+                'Konsultasi Gizi',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16 * fem,

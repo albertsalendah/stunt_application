@@ -8,6 +8,7 @@ import 'package:stunt_application/custom_widget/blue_header_01.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/pages/Login_Register/login_register_api.dart';
 import 'package:stunt_application/pages/Login_Register/register.dart';
+import 'package:stunt_application/pages/LupaPassword/lupa_password.dart';
 import '../../Bloc/LogIn/login_bloc.dart';
 import '../../models/api_massage.dart';
 
@@ -135,16 +136,26 @@ class _LoginState extends State<Login> {
                           ],
                         ),
                       ),
-                      // const Padding(
-                      //   padding: EdgeInsets.all(8.0),
-                      //   child: Align(
-                      //       alignment: Alignment.centerRight,
-                      //       child: Text(
-                      //         'Lupa password?',
-                      //         style: TextStyle(
-                      //             fontSize: 16, color: Color(0xff3f7af6)),
-                      //       )),
-                      // )
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LupaPassword(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Lupa password?',
+                                style: TextStyle(
+                                    fontSize: 16, color: Color(0xff3f7af6)),
+                              ),
+                            )),
+                      )
                     ]),
                   ),
                 ),
@@ -166,19 +177,20 @@ class _LoginState extends State<Login> {
                             onPressed: () async {
                               if (no_wa.text.isNotEmpty &&
                                   pass.text.isNotEmpty) {
-                                API_Massage result = await context
+                                API_Message result = await context
                                     .read<LoginBloc>()
                                     .login(
                                         noHp: no_wa.text, password: pass.text);
                                 if (result.status) {
                                   clear_field();
                                 } else {
-                                  clear_field();
                                   showDialog(
                                     context: context,
                                     builder: (context) => PopUpError(
                                         message: result.message.toString()),
-                                  );
+                                  ).then((value) {
+                                    clear_field();
+                                  });
                                 }
                               } else {
                                 if (no_wa.text.isEmpty) {
@@ -196,7 +208,8 @@ class _LoginState extends State<Login> {
                             child: Center(
                               child: Text(
                                 'Masuk',
-                                style: TextStyle(fontSize: 16 * ffem),
+                                style: TextStyle(
+                                    fontSize: 16 * ffem, color: Colors.white),
                               ),
                             ),
                           )),

@@ -1,4 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +12,7 @@ import 'package:stunt_application/custom_widget/popup_success.dart';
 
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../models/api_massage.dart';
 import '../../models/data_anak_model.dart';
 import '../../models/menu_makan_model.dart';
@@ -177,7 +179,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
         title: 'Tambah Menu Makan',
         message: menu[selectedMenuMakan - 1],
         onPressed: () async {
-          API_Massage result = await api.addMenuMakan(
+          API_Message result = await api.addMenuMakan(
               id_anak: dataAnak.id_anak ?? '',
               userID: user.userID ?? '',
               menu_makan: selectedMenuMakan,
@@ -236,7 +238,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
         title: 'Ubah Menu Manakn',
         message: 'Ubah ${menu[selectedMenuMakan - 1]}',
         onPressed: () async {
-          API_Massage result = await api.updateMenuMakan(
+          API_Message result = await api.updateMenuMakan(
             id_menu: menuMakan.idmenu ?? '',
             jam_makan: jamMakan.text,
             makan_pokok: makananPokok.text,
@@ -294,7 +296,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
 
   //hapus .add(const Duration(days: 1)) saat deploy
   String formatTglMenu(String tgl) {
-    DateTime parsedDate = DateTime.parse(tgl).add(const Duration(days: 1));
+    DateTime parsedDate = DateTime.parse(tgl);
     return DateFormat('yyyy-MM-dd').format(parsedDate).toString();
   }
 
@@ -539,7 +541,8 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                       child: Center(
                         child: Text(
                           menuMakan.idmenu == null ? 'Simpan' : 'Update',
-                          style: TextStyle(fontSize: 16 * ffem),
+                          style: TextStyle(
+                              fontSize: 16 * ffem, color: Colors.white),
                         ),
                       ),
                     ),
@@ -607,6 +610,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -618,6 +622,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -628,6 +633,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -638,6 +644,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -648,6 +655,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -658,6 +666,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4, bottom: 4),
                           child: ListTile(
+                            tileColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               side: const BorderSide(color: Colors.grey),
                               borderRadius: BorderRadius.circular(10.0),
@@ -723,7 +732,10 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                             });
                             Navigator.pop(context);
                           },
-                          child: const Text('Simpan')),
+                          child: const Text(
+                            'Simpan',
+                            style: TextStyle(color: Colors.white),
+                          )),
                     ),
                   )
                 ],

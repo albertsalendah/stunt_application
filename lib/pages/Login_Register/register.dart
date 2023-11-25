@@ -8,10 +8,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stunt_application/custom_widget/popUpConfirmCode.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
+import 'package:stunt_application/models/user.dart';
 import 'package:stunt_application/pages/Data_Anak/data_anak.dart';
 import 'package:stunt_application/pages/Login_Register/login.dart';
 import 'package:stunt_application/pages/Login_Register/login_register_api.dart';
-import 'package:stunt_application/utils/firebase_api.dart';
+import 'package:stunt_application/pages/LupaPassword/lupa_password_api.dart';
+import 'package:stunt_application/utils/random_String.dart';
 import 'dart:math' as math;
 import '../../custom_widget/blue_header_01.dart';
 import '../../custom_widget/popup_error.dart';
@@ -28,6 +33,7 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
   bool passwordVisible = false;
   Login_Register_Api api = Login_Register_Api();
+  LupaPasswordApi apiPass = LupaPasswordApi();
   TextEditingController nama = TextEditingController();
   TextEditingController no_wa = TextEditingController();
   TextEditingController email = TextEditingController();
@@ -173,16 +179,18 @@ class _RegisterState extends State<Register> {
                                 child: Text("Nama"),
                               ),
                               TextFormField(
-                                  controller: nama,
-                                  focusNode: focusNodes[0],
-                                  onEditingComplete: () =>
-                                      focusNodes[1].requestFocus(),
-                                  keyboardType: TextInputType.name,
-                                  decoration: InputDecoration(
-                                      hintText: 'masukkan nama lengkap',
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)))),
+                                controller: nama,
+                                focusNode: focusNodes[0],
+                                onEditingComplete: () =>
+                                    focusNodes[1].requestFocus(),
+                                keyboardType: TextInputType.name,
+                                decoration: InputDecoration(
+                                  hintText: 'masukkan nama lengkap',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -196,30 +204,30 @@ class _RegisterState extends State<Register> {
                                 child: Text('No. WhatsApp'),
                               ),
                               TextFormField(
-                                  controller: no_wa,
-                                  focusNode: focusNodes[1],
-                                  onEditingComplete: () =>
-                                      focusNodes[2].requestFocus(),
-                                  keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  decoration: InputDecoration(
-                                      hintText: 'No. WhatsApp',
-                                      prefixIcon: const Padding(
-                                        padding:
-                                            EdgeInsets.only(left: 8, right: 5),
-                                        child: Text(
-                                          '+62 |',
-                                          style: TextStyle(fontSize: 18),
-                                        ),
-                                      ),
-                                      prefixIconConstraints:
-                                          const BoxConstraints(
-                                              minWidth: 0, minHeight: 0),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)))),
+                                controller: no_wa,
+                                focusNode: focusNodes[1],
+                                onEditingComplete: () =>
+                                    focusNodes[2].requestFocus(),
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                decoration: InputDecoration(
+                                  hintText: 'No. WhatsApp',
+                                  prefixIcon: const Padding(
+                                    padding: EdgeInsets.only(left: 8, right: 5),
+                                    child: Text(
+                                      '+62 |',
+                                      style: TextStyle(fontSize: 18),
+                                    ),
+                                  ),
+                                  prefixIconConstraints: const BoxConstraints(
+                                      minWidth: 0, minHeight: 0),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -233,20 +241,33 @@ class _RegisterState extends State<Register> {
                                 child: Text('Email'),
                               ),
                               TextFormField(
-                                  controller: email,
-                                  focusNode: focusNodes[2],
-                                  onEditingComplete: () =>
-                                      focusNodes[3].requestFocus(),
-                                  keyboardType: TextInputType.emailAddress,
-                                  decoration: InputDecoration(
-                                      hintText: 'Email',
-                                      prefixIcon: const Icon(
-                                        Icons.email_outlined,
-                                        color: Colors.grey,
-                                      ),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8)))),
+                                controller: email,
+                                focusNode: focusNodes[2],
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                onEditingComplete: () {
+                                  focusNodes[3].requestFocus();
+                                },
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  hintText: 'Email',
+                                  prefixIcon: const Icon(
+                                    Icons.email_outlined,
+                                    color: Colors.grey,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Silahkan isi email anda';
+                                  } else if (!isValidEmail(value)) {
+                                    return 'Format email salah';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -260,32 +281,34 @@ class _RegisterState extends State<Register> {
                                 child: Text('Kata Sandi'),
                               ),
                               TextFormField(
-                                  controller: pass,
-                                  focusNode: focusNodes[3],
-                                  onEditingComplete: () =>
-                                      focusNodes[4].requestFocus(),
-                                  obscureText: !passwordVisible,
-                                  decoration: InputDecoration(
-                                      hintText: 'masukkan kata sandi',
-                                      prefixIcon: const Icon(
-                                        Icons.lock_outline,
-                                        color: Colors.grey,
-                                      ),
-                                      suffixIcon: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            passwordVisible = !passwordVisible;
-                                          });
-                                        },
-                                        icon: Icon(
-                                          !passwordVisible
-                                              ? Icons.visibility_off
-                                              : Icons.visibility,
-                                        ),
-                                      ),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8)))),
+                                controller: pass,
+                                focusNode: focusNodes[3],
+                                onEditingComplete: () =>
+                                    focusNodes[4].requestFocus(),
+                                obscureText: !passwordVisible,
+                                decoration: InputDecoration(
+                                  hintText: 'masukkan kata sandi',
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline,
+                                    color: Colors.grey,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        passwordVisible = !passwordVisible;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      !passwordVisible
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -313,61 +336,25 @@ class _RegisterState extends State<Register> {
                                   pass.text.isNotEmpty &&
                                   email.text.isNotEmpty &&
                                   nama.text.isNotEmpty) {
-                                String? fcm_token =
-                                    await FirebaseApi().getTokenFCM();
-                                if (fcm_token != null) {
-                                  API_Massage result = await api.registerUser(
-                                      nama: nama.text,
-                                      noHp: no_wa.text,
-                                      email: email.text,
-                                      password: pass.text,
-                                      foto: foto,
-                                      fcm_token: fcm_token);
-                                  if (result.status) {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => PopUpSuccess(
-                                            message: result.message
-                                                .toString())).then(
-                                      (value) async {
-                                        API_Massage result = await api.login(
-                                            noHp: no_wa.text,
-                                            password: pass.text);
-                                        if (result.status) {
-                                          Navigator.pop(context);
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const DataAnak(
-                                                      afterRegister: true),
-                                            ),
-                                          );
-                                          clear_field();
-                                        }
-                                      },
-                                    );
-                                  } else {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => PopUpError(
-                                          message: result.message.toString()),
-                                    );
-                                    clear_field();
-                                  }
-                                } else {
+                                User check =
+                                    await apiPass.getDataUser(noHp: no_wa.text);
+                                if (check.userID != null &&
+                                    check.userID!.isNotEmpty) {
                                   showDialog(
                                     context: context,
                                     builder: (context) => const PopUpError(
-                                        message: 'Koneksi Ke Server Gagal'),
+                                        message: 'Nomer HP Sudah Terdaftar'),
                                   );
-                                  clear_field();
+                                } else {
+                                  sendConfirmEmail();
                                 }
                               } else {
                                 if (nama.text.isEmpty) {
                                   focusNodes[0].requestFocus();
                                 } else if (no_wa.text.isEmpty) {
                                   focusNodes[1].requestFocus();
+                                } else if (email.text.isEmpty) {
+                                  focusNodes[2].requestFocus();
                                 } else if (pass.text.isEmpty) {
                                   focusNodes[3].requestFocus();
                                 }
@@ -381,12 +368,12 @@ class _RegisterState extends State<Register> {
                             child: Center(
                               child: Text(
                                 'Daftar Sekarang',
-                                style: TextStyle(fontSize: 16 * ffem),
+                                style: TextStyle(
+                                    fontSize: 16 * ffem, color: Colors.white),
                               ),
                             ),
                           )),
                       RichText(
-                        // sudahpunyaakunmasukdisiniZgM (316:2492)
                         text: TextSpan(
                           style: TextStyle(
                             fontSize: 14 * ffem,
@@ -425,5 +412,99 @@ class _RegisterState extends State<Register> {
             )),
       ),
     );
+  }
+
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
+    return emailRegex.hasMatch(email);
+  }
+
+  void sendConfirmEmail() async {
+    String code = RandomString().makeId(6);
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return const PopUpLoading();
+        });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('randomCode', code);
+    bool result = await apiPass.sendEmail(
+        to: email.text, code: code, subject: 'Konfirmasi Email StuntApp');
+    if (result) {
+      Navigator.pop(context);
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (con) {
+            return GestureDetector(
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              child: PopUpConfirmCode(
+                email: email.text,
+                onPressed: (String code) {
+                  SharedPreferences.getInstance().then((prefs) async {
+                    String storedCode = prefs.getString('randomCode') ?? '';
+                    if (code == storedCode) {
+                      API_Message result = await api.registerUser(
+                          nama: nama.text,
+                          noHp: no_wa.text,
+                          email: email.text,
+                          password: pass.text,
+                          foto: foto,
+                          fcm_token: '');
+                      if (result.status) {
+                        Navigator.pop(con);
+                        showDialog(
+                            context: context,
+                            builder: (context) => PopUpSuccess(
+                                message: result.message.toString())).then(
+                          (value) async {
+                            API_Message result = await api.login(
+                                noHp: no_wa.text, password: pass.text);
+                            if (result.status) {
+                              Navigator.pop(context);
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const DataAnak(afterRegister: true),
+                                ),
+                              );
+                              prefs.remove('randomCode');
+                              clear_field();
+                            }
+                          },
+                        );
+                      } else {
+                        Navigator.pop(con);
+                        showDialog(
+                          context: context,
+                          builder: (context) =>
+                              PopUpError(message: result.message.toString()),
+                        );
+                        prefs.remove('randomCode');
+                        clear_field();
+                      }
+                    } else {
+                      showDialog(
+                          context: context,
+                          builder: (context) => const PopUpError(
+                              message: 'Kode yang anda masukkan salah'));
+                    }
+                  });
+                },
+              ),
+            );
+          });
+    } else {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (context) =>
+            const PopUpError(message: 'Email Tidak Ditemukan'),
+      );
+    }
   }
 }

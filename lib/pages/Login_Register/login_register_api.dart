@@ -14,7 +14,7 @@ class Login_Register_Api {
   static const String link = Configs.LINK;
   final Dio dio = Dio();
 
-  Future<API_Massage> login({
+  Future<API_Message> login({
     required String noHp,
     required String password,
   }) async {
@@ -22,6 +22,9 @@ class Login_Register_Api {
       final response = await dio.post(
         '${link}login',
         data: {'no_hp': noHp, 'password': password, 'health_worker': false},
+        // options: Options(validateStatus: (status) {
+        //   return status! < 500;
+        // }),
       );
       dynamic token = response.data['token'];
       User user = User.fromJson(response.data['user']);
@@ -34,20 +37,21 @@ class Login_Register_Api {
       }
       await SessionManager.saveToken(token);
       await SessionManager.saveUser(user);
-      return API_Massage(status: true, message: '');
+      return API_Message(status: true, message: '');
     } on DioException catch (error) {
       if (error.response != null) {
-        log(error.response!.data['error'].toString());
+        String err = error.response!.data!['error'].toString();
+        log(err);
       } else {
-        // Something happened in setting up or sending the request that triggered an Error
-        log(error.requestOptions.toString());
-        log(error.message.toString());
+        // Handle other Dio errors (e.g., network error)
+        log('DioError: ${error.message}');
       }
-      return API_Massage(status: false, message: error.response!.data['error']);
+      return API_Message(
+          status: false, message: error.response?.data?['error'].toString());
     }
   }
 
-  Future<API_Massage> registerUser(
+  Future<API_Message> registerUser(
       {required String nama,
       required String noHp,
       required String email,
@@ -68,14 +72,14 @@ class Login_Register_Api {
           'health_worker': false
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       log('Error registering user: $error');
-      return API_Massage(status: false, message: error.response!.data['error']);
+      return API_Message(status: false, message: error.response!.data['error']);
     }
   }
 
-  Future<API_Massage> updateTokenFCM(
+  Future<API_Message> updateTokenFCM(
       {required String userID, required String fcm_token}) async {
     try {
       final response = await dio.post(
@@ -85,7 +89,7 @@ class Login_Register_Api {
           "fcm_token": fcm_token,
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -94,7 +98,7 @@ class Login_Register_Api {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 }

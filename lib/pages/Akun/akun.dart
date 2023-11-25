@@ -11,7 +11,7 @@ import 'package:stunt_application/pages/Akun/edit_akun.dart';
 
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../models/user.dart';
 import '../../utils/SessionManager.dart';
 import '../Login_Register/login.dart';
@@ -68,7 +68,7 @@ class _AkunState extends State<Akun> {
   }
 
   Future<void> hapusAkun() async {
-    API_Massage result =
+    API_Message result =
         await api.hapusAkun(userID: user.userID ?? '', token: token);
     if (result.status) {
       await SessionManager.logout();

@@ -98,6 +98,7 @@ class KonsultasiAPI {
           await konsultasiBloc.getLatestMesage(
               userID: senderID.toString(), token: token);
           log('New Message');
+          log('SENDER : $senderID <=> RECEIVER : $receiverID');
         }
         sqlite.deleteSingleChatServer(id_message: data.first.idmessage.toString(), token: token);
       }

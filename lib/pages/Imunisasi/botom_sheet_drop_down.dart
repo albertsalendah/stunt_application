@@ -151,7 +151,7 @@ class _BotomSheetDropDownState extends State<BotomSheetDropDown> {
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                                child: ListTile(
+                                child: ListTile(tileColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     side: const BorderSide(color: Colors.grey),
                                     borderRadius: BorderRadius.circular(10.0),

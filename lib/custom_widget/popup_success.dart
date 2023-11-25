@@ -59,7 +59,6 @@ class PopUpSuccess extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            // penjelasansingkatintepretasiad (345:2493)
                             constraints: BoxConstraints(
                               maxWidth: 197 * fem,
                             ),
@@ -89,7 +88,10 @@ class PopUpSuccess extends StatelessWidget {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Tutup')),
+                      child: const Text(
+                        'Tutup',
+                        style: TextStyle(color: Colors.white),
+                      )),
                 )
               ],
             ),

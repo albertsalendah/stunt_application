@@ -13,6 +13,7 @@ class PopUpStatusGizi extends StatelessWidget {
     double ffem = fem * 0.97;
     return AlertDialog(
         scrollable: true,
+        surfaceTintColor: Colors.white,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(20 * fem))),
         content: Wrap(
@@ -90,10 +91,17 @@ class PopUpStatusGizi extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          backgroundColor: const Color(0xff3f7af6)),
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Tutup')),
+                      child: const Text(
+                        'Tutup',
+                        style: TextStyle(color: Colors.white),
+                      )),
                 )
               ],
             ),

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stunt_application/main.dart';
 import '../../Bloc/LogIn/login_bloc.dart';
 
 class PopUpLogout extends StatelessWidget {
@@ -63,7 +64,6 @@ class PopUpLogout extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          // penjelasansingkatintepretasiad (345:2493)
                           constraints: BoxConstraints(
                             maxWidth: 197 * fem,
                           ),
@@ -88,27 +88,36 @@ class PopUpLogout extends StatelessWidget {
                 children: [
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          fixedSize: Size(60 * fem, 5 * fem),
+                          fixedSize: Size(70 * fem, 5 * fem),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                           backgroundColor: Colors.green),
                       onPressed: () async {
-                        await context.read<LoginBloc>().logout();
+                        final con = navigatorKey.currentContext;
+                        Navigator.pop(context);
+                        if (con != null) {
+                          await context.read<LoginBloc>().logout();
+                          Navigator.pop(context);
+                        }
                       },
-                      child: const Text('Logout')),
+                      child: const Text('Logout',
+                          style: TextStyle(color: Colors.white))),
                   const SizedBox(
                     width: 16,
                   ),
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          fixedSize: Size(60 * fem, 5 * fem),
+                          fixedSize: Size(70 * fem, 5 * fem),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                           backgroundColor: Colors.red),
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text('Batal')),
+                      child: const Text(
+                        'Batal',
+                        style: TextStyle(color: Colors.white),
+                      )),
                 ],
               )
             ],

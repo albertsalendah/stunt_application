@@ -164,62 +164,42 @@ class _BotomSheetVaksinState extends State<BotomSheetVaksin> {
                               return Padding(
                                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
                                 child: ListTile(
+                                  tileColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     side: const BorderSide(color: Colors.grey),
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
-                                  title: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Flexible(
-                                          fit: FlexFit.loose,
-                                          flex: 2,
-                                          child: InkWell(
-                                            onTap: () {
-                                              localTextController.text =
-                                                  searchfilteredList[index];
-                                              widget.onSelected(
-                                                  searchfilteredList[index]);
-                                              list.clear();
-                                              Navigator.pop(context);
-                                            },
-                                            child:
-                                                Text(searchfilteredList[index]),
-                                          )),
-                                      Flexible(
-                                          flex: 1,
-                                          fit: FlexFit.tight,
-                                          child: IconButton(
-                                            alignment: Alignment.centerRight,
-                                            onPressed: () {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) =>
-                                                    PopUpStatusGizi(
-                                                        title:
-                                                            searchfilteredList[
-                                                                index],
-                                                        message: widget
-                                                                .daftarVaksin
-                                                                .firstWhere(
-                                                                  (element) =>
-                                                                      element
-                                                                          .namavaksin ==
-                                                                      searchfilteredList[
-                                                                          index],
-                                                                  orElse: () =>
-                                                                      DaftarVaksinModel(),
-                                                                )
-                                                                .keterangan ??
-                                                            ''),
-                                              );
-                                            },
-                                            icon: const Icon(Icons.info),
-                                          ))
-                                    ],
+                                  trailing: IconButton(
+                                    alignment: Alignment.centerRight,
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => PopUpStatusGizi(
+                                            title: searchfilteredList[index],
+                                            message: widget.daftarVaksin
+                                                    .firstWhere(
+                                                      (element) =>
+                                                          element.namavaksin ==
+                                                          searchfilteredList[
+                                                              index],
+                                                      orElse: () =>
+                                                          DaftarVaksinModel(),
+                                                    )
+                                                    .keterangan ??
+                                                ''),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.info),
                                   ),
-                                  onTap: () {},
+                                  title: Text(searchfilteredList[index]),
+                                  onTap: () {
+                                    localTextController.text =
+                                        searchfilteredList[index];
+                                    widget
+                                        .onSelected(searchfilteredList[index]);
+                                    list.clear();
+                                    Navigator.pop(context);
+                                  },
                                 ),
                               );
                             },

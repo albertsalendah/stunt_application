@@ -1,9 +1,10 @@
 // ignore_for_file: non_constant_identifier_names, use_build_context_synchronously
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/blue_header_02.dart';
 import 'package:stunt_application/custom_widget/jadwal_vaksin_card.dart';
 import 'package:stunt_application/pages/Data_Pertumbuhan/data_pertumbuhan.dart';
@@ -38,7 +39,6 @@ class _HomeState extends State<Home> {
   List<DataIMT> list_imt_umur_518 = [];
   List<JadwalVaksinModel> listJadwalVaksin = [];
   List<DataAnakModel> listAnak = [];
-  List<DropdownMenuEntry<DataAnakModel>> listofitems = [];
 
   @override
   void initState() {
@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await fetch_user();
       token = await SessionManager.getToken() ?? '';
-     // await fetch_data();
+      // await fetch_data();
       if (listAnak.isEmpty) {
         await fetch_data();
       }
@@ -142,15 +142,6 @@ class _HomeState extends State<Home> {
                 );
               } else if (state is DataAnakLoaded) {
                 listAnak = state.dataAnak;
-                listofitems.clear();
-                for (var item in listAnak) {
-                  listofitems.add(
-                    DropdownMenuEntry(
-                      value: item,
-                      label: item.namaanak.toString(),
-                    ),
-                  );
-                }
               } else if (state is DetailAnakLoaded) {
                 dataAnak = state.detailAnak;
               } else if (state is DataTabelStatusGiziLoaded) {
@@ -178,7 +169,7 @@ class _HomeState extends State<Home> {
                                 Icons.flutter_dash,
                                 color: Colors.grey,
                               )),
-                          dropdownNamaAnak(context, listAnak, listofitems),
+                          dropdownNamaAnak(context),
                           settingbutton(fem, context)
                         ],
                       ),
@@ -189,8 +180,11 @@ class _HomeState extends State<Home> {
                           text1: 'Amati pertumbuhan si kecil',
                           text2: 'Konsultasikan ke pakar gizi'),
                       data_anak(fem, ffem),
-                      data_pertumbuhan(fem, ffem),
-                      jadwal_imunisasi(fem, ffem)
+                      if (dataAnak.id_anak != null &&
+                          dataAnak.id_anak.toString().isNotEmpty) ...[
+                        data_pertumbuhan(fem, ffem),
+                        jadwal_imunisasi(fem, ffem)
+                      ]
                     ]),
                   ),
                 ),
@@ -202,8 +196,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Expanded dropdownNamaAnak(BuildContext context, List<DataAnakModel> list,
-      List<DropdownMenuEntry<DataAnakModel>> listofitems) {
+  Expanded dropdownNamaAnak(BuildContext context) {
     return Expanded(
       child: listAnak.isNotEmpty
           ? DropdownMenu<DataAnakModel>(
@@ -219,11 +212,15 @@ class _HomeState extends State<Home> {
                   await fetch_data();
                 }
               },
-              initialSelection: dataAnak.id_anak != null && list.isNotEmpty
-                  ? list.firstWhere(
-                      (element) => element.id_anak == dataAnak.id_anak)
-                  : list.first,
-              dropdownMenuEntries: listofitems,
+              initialSelection:
+                  dataAnak.id_anak != null ? dataAnak : listAnak.first,
+              dropdownMenuEntries: listAnak
+                  .map<DropdownMenuEntry<DataAnakModel>>((DataAnakModel item) {
+                return DropdownMenuEntry<DataAnakModel>(
+                  value: item,
+                  label: item.namaanak.toString(),
+                );
+              }).toList(),
             )
           : const SizedBox(),
     );
@@ -317,7 +314,7 @@ class _HomeState extends State<Home> {
                     child: Visibility(
                       visible: (dataAnak.id_anak != null),
                       replacement: const Center(
-                          child: Text('Belum Ada Data Anak Silahkan Diisi')),
+                          child: Text('Belum Ada Data Anak \nTap Disini',textAlign: TextAlign.center,)),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,

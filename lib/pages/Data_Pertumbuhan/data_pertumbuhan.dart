@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../custom_widget/popup_error.dart';
 import '../../custom_widget/popup_success.dart';
 import '../../models/api_massage.dart';
@@ -103,7 +103,7 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
         berat_badan.text.isNotEmpty &&
         tinggi_badan.text.isNotEmpty) {
       log('message');
-      API_Massage result = await api.updateDataAnak(
+      API_Message result = await api.updateDataAnak(
           id_anak: dataAnak.id_anak ?? '',
           userID: user.userID ?? '',
           namaAnak: dataAnak.namaanak ?? '',
@@ -400,7 +400,7 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                           child: Center(
                             child: Text(
                               'Simpan',
-                              style: TextStyle(fontSize: 16 * ffem),
+                              style: TextStyle(fontSize: 16 * ffem,color: Colors.white),
                             ),
                           ),
                         )),

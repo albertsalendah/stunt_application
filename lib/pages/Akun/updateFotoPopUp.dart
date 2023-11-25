@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mime/mime.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/models/api_massage.dart';
 
@@ -153,18 +154,18 @@ class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
                                   borderRadius: BorderRadius.circular(10)),
                               backgroundColor: Colors.green),
                           onPressed: () async {
-                            API_Massage result = await api.updateFoto(
+                            showDialog(
+                              context: context,
+                              builder: (context) => const PopUpLoading(),
+                            );
+                            API_Message result = await api.updateFoto(
                                 userID: user.userID.toString(),
                                 foto: foto,
                                 token: token);
+                            Navigator.pop(context);
                             if (result.status) {
                               imagebytes = null;
                               Navigator.pop(context);
-                              // showDialog(
-                              //   context: context,
-                              //   builder: (context) => PopUpSuccess(
-                              //       message: result.message.toString()),
-                              // );
                             } else {
                               showDialog(
                                 context: context,
@@ -173,7 +174,10 @@ class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
                               );
                             }
                           },
-                          child: const Text('Ganti Foto')),
+                          child: const Text(
+                            'Ganti Foto',
+                            style: TextStyle(color: Colors.white),
+                          )),
                     ),
                   ),
                   const SizedBox(
@@ -192,7 +196,10 @@ class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
                             imagebytes = null;
                             Navigator.pop(context);
                           },
-                          child: const Text('Batal')),
+                          child: const Text(
+                            'Batal',
+                            style: TextStyle(color: Colors.white),
+                          )),
                     ),
                   ),
                 ],

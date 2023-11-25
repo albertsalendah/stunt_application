@@ -76,7 +76,7 @@ class DataAnakApi {
     }
   }
 
-  Future<API_Massage> addDataAnak(
+  Future<API_Message> addDataAnak(
       {required String userID,
       required String namaAnak,
       required String jenisKelamin,
@@ -100,7 +100,7 @@ class DataAnakApi {
           "pengukuran_terakhir": DateFormat('yyyy-MM-dd').format(DateTime.now())
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -109,11 +109,11 @@ class DataAnakApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 
-  Future<API_Massage> updateDataAnak(
+  Future<API_Message> updateDataAnak(
       {required String id_anak,
       required String userID,
       required String namaAnak,
@@ -139,7 +139,7 @@ class DataAnakApi {
           "pengukuran_terakhir": DateFormat('yyyy-MM-dd').format(DateTime.now())
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -148,7 +148,7 @@ class DataAnakApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 }

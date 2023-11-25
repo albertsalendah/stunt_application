@@ -12,7 +12,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../custom_widget/navigation_bar.dart';
+import '../../navigation_bar.dart';
 import '../../custom_widget/popup_success.dart';
 import '../../models/api_massage.dart';
 import '../../models/data_anak_model.dart';
@@ -24,6 +24,7 @@ import 'botom_sheet_date_picker.dart';
 import 'botom_sheet_drop_down.dart';
 import 'bottomSheetVaksin.dart';
 import 'imunisasi_api.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Imunisasi extends StatefulWidget {
   const Imunisasi({super.key});
@@ -326,7 +327,7 @@ class _ImunisasiState extends State<Imunisasi> {
                                   message:
                                       'Simpan Jadwal Vaksin Ini? \n $tipeVaksin \n $tanggalVaksin',
                                   onPressed: () async {
-                                    API_Massage result =
+                                    API_Message result =
                                         await api.tambahJadwalVaksin(
                                             id_anak: dataAnak.id_anak ?? '',
                                             userID: user.userID ?? '',
@@ -368,7 +369,8 @@ class _ImunisasiState extends State<Imunisasi> {
                           child: Center(
                             child: Text(
                               'Simpan & Ingatkan',
-                              style: TextStyle(fontSize: 16 * ffem),
+                              style: TextStyle(
+                                  fontSize: 16 * ffem, color: Colors.white),
                             ),
                           ),
                         )),

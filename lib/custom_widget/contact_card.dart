@@ -1,13 +1,30 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
+import 'package:stunt_application/utils/check_foto.dart';
+import 'dart:io';
 import '../models/user.dart';
 import '../pages/Konsultasi/chat_page.dart';
 
-class ContactCard extends StatelessWidget {
+class ContactCard extends StatefulWidget {
   final User user;
   const ContactCard({super.key, required this.user});
+
+  @override
+  State<ContactCard> createState() => _ContactCardState();
+}
+
+class _ContactCardState extends State<ContactCard> {
+  String foto = '';
+  File imageFile = File('');
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      imageFile = await Foto().check(widget.user);
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +38,11 @@ class ContactCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => ChatPage(
               senderID: '',
-              receverID: user.userID,
-              receiverNama: user.nama,
-              receiverKet: user.keterangan,
-              receiverFCM: user.fcm_token,
-              receiverFoto: user.foto,
+              receverID: widget.user.userID,
+              receiverNama: widget.user.nama,
+              receiverKet: widget.user.keterangan,
+              receiverFCM: widget.user.fcm_token,
+              receiverFoto: widget.user.foto,
             ),
           ),
         );
@@ -70,16 +87,16 @@ class ContactCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(color: const Color(0xfff0f0f0)),
                         borderRadius: BorderRadius.circular(19.5 * fem),
-                        image: user.foto == null
-                            ? const DecorationImage(
+                        image: widget.user.foto != null &&
+                                widget.user.foto!.isNotEmpty
+                            ? DecorationImage(
+                                fit: BoxFit.cover,
+                                image: FileImage(imageFile),
+                              )
+                            : const DecorationImage(
                                 fit: BoxFit.cover,
                                 image:
                                     AssetImage('assets/images/group-1-jAH.png'),
-                              )
-                            : DecorationImage(
-                                fit: BoxFit.cover,
-                                image: MemoryImage(
-                                    base64Decode(user.foto.toString())),
                               ),
                       ),
                       child: Align(
@@ -105,7 +122,7 @@ class ContactCard extends StatelessWidget {
                             margin: EdgeInsets.fromLTRB(
                                 0 * fem, 0 * fem, 0 * fem, 2 * fem),
                             child: Text(
-                              user.nama ?? '',
+                              widget.user.nama ?? '',
                               style: TextStyle(
                                 fontSize: 14 * ffem,
                                 fontWeight: FontWeight.w600,
@@ -115,7 +132,7 @@ class ContactCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            user.keterangan ?? '',
+                            widget.user.keterangan ?? '',
                             style: TextStyle(
                               fontSize: 12 * ffem,
                               fontWeight: FontWeight.w400,

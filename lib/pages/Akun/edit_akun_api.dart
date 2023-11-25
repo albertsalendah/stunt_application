@@ -36,7 +36,7 @@ class EditAkunApi {
     }
   }
 
-  Future<API_Massage> updateFoto(
+  Future<API_Message> updateFoto(
       {required String userID, String? foto, required String token}) async {
     try {
       dio.options.headers['x-access-token'] = token;
@@ -47,7 +47,7 @@ class EditAkunApi {
           "foto": foto,
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log('Update Foto : ${error.response!.data['error']}');
@@ -56,11 +56,11 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 
-  Future<API_Massage> updateNo(
+  Future<API_Message> updateNo(
       {required String userID,
       required String no_hp,
       required String token}) async {
@@ -73,7 +73,7 @@ class EditAkunApi {
           "no_hp": no_hp,
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -82,11 +82,11 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.response?.data['error']);
     }
   }
 
-  Future<API_Massage> updateEmail(
+  Future<API_Message> updateEmail(
       {required String userID,
       required String email,
       required String token}) async {
@@ -99,7 +99,7 @@ class EditAkunApi {
           "email": email,
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -108,11 +108,11 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.response?.data['error']);
     }
   }
 
-  Future<API_Massage> updatePassword(
+  Future<API_Message> updatePassword(
       {required String userID,
       required String password,
       required String token}) async {
@@ -125,7 +125,7 @@ class EditAkunApi {
           "password": password,
         },
       );
-      return API_Massage(status: true, message: response.data['message']);
+      return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -134,11 +134,11 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.message.toString());
+      return API_Message(status: false, message: error.message.toString());
     }
   }
 
-  Future<API_Massage> cekPasswordLama(
+  Future<API_Message> cekPasswordLama(
       {required String noHp,
       required String password,
       required String token}) async {
@@ -151,7 +151,7 @@ class EditAkunApi {
           'password': password,
         },
       );
-      return API_Massage(status: true, message: response.data['massage']);
+      return API_Message(status: true, message: response.data['massage']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -160,11 +160,11 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.response!.data['error']);
+      return API_Message(status: false, message: error.response!.data['error']);
     }
   }
 
-  Future<API_Massage> hapusAkun(
+  Future<API_Message> hapusAkun(
       {required String userID, required String token}) async {
     try {
       dio.options.headers['x-access-token'] = token;
@@ -172,7 +172,7 @@ class EditAkunApi {
         '${link}hapus_akun',
         data: {'userID': userID},
       );
-      return API_Massage(status: true, message: response.data['massage']);
+      return API_Message(status: true, message: response.data['massage']);
     } on DioException catch (error) {
       if (error.response != null) {
         log(error.response!.data['error']);
@@ -181,7 +181,7 @@ class EditAkunApi {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      return API_Massage(status: false, message: error.response!.data['error']);
+      return API_Message(status: false, message: error.response!.data['error']);
     }
   }
 }
