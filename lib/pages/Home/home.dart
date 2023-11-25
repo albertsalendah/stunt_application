@@ -1,7 +1,4 @@
 // ignore_for_file: non_constant_identifier_names, use_build_context_synchronously
-
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -88,13 +85,6 @@ class _HomeState extends State<Home> {
         await context.read<AllBloc>().getDataAnak(user: user, token: token);
       }
     }
-    // String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    // await context.read<AllBloc>().getMenuMakan(
-    //     userID: user.userID ?? '',
-    //     id_anak: dataAnak.id_anak ?? '',
-    //     tanggal: selectedDate,
-    //     token: token);
-    // await context.read<AllBloc>().getRekomendasiMenu(token: token);
   }
 
   @override
