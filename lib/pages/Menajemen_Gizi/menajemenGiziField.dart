@@ -30,7 +30,6 @@ class _MenajemenGiziFieldState extends State<MenajemenGiziField> {
   FocusNode measure = FocusNode();
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     widget.measurementController.text = widget.hintM;
   }

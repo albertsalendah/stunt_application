@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +29,7 @@ class MenajemenGizi extends StatefulWidget {
 }
 
 class _MenajemenGiziState extends State<MenajemenGizi> {
+  late AllBloc allbloc;
   String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   MenajemenGiziApi api = MenajemenGiziApi();
   User user = User();
@@ -86,13 +87,13 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
 
   FocusNode timeFocus = FocusNode();
   List<FocusNode> focusNodes = List.generate(8, (index) => FocusNode());
-  final ScrollController _scrollController = ScrollController();
   List<GlobalKey<FormState>> keys =
       List.generate(8, (index) => GlobalKey<FormState>());
 
   @override
   void initState() {
     super.initState();
+    allbloc = context.read<AllBloc>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await fetch_user();
       token = await SessionManager.getToken() ?? '';
@@ -128,7 +129,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
   }
 
   Future<void> fetchData(User user, String token) async {
-    await context.read<AllBloc>().getDetailDataAnak(
+    await allbloc.getDetailDataAnak(
         user: user, id_anak: dataAnak.id_anak ?? '', token: token);
   }
 
@@ -136,12 +137,12 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
       {required User user,
       required String token,
       required String tanggal}) async {
-    await context.read<AllBloc>().getMenuMakan(
+    await allbloc.getMenuMakan(
         userID: user.userID ?? '',
         id_anak: dataAnak.id_anak ?? '',
         tanggal: tanggal,
         token: token);
-    await context.read<AllBloc>().getRekomendasiMenu(token: token);
+    await allbloc.getRekomendasiMenu(token: token);
   }
 
   void setMenuMakan() {

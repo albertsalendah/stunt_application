@@ -8,12 +8,12 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/main.dart';
 import 'package:stunt_application/models/message_model.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../models/user.dart';
-import '../../utils/SessionManager.dart';
 import '../../utils/config.dart';
 import '../../utils/sqlite_helper.dart';
 
@@ -24,10 +24,9 @@ class KonsultasiAPI {
   final Dio dio = Dio();
   SqliteHelper sqlite = SqliteHelper();
 
-  Future<List<User>> getListHealthWorker({required String token}) async {
+  Future<List<User>> getListHealthWorker() async {
     List<User> data = [];
     try {
-      dio.options.headers['x-access-token'] = token;
       final response = await dio.get(
         '${link}get_list_health_worker',
       );
@@ -51,10 +50,8 @@ class KonsultasiAPI {
 
   void getLatestMessageFromServer(
       {required String senderID, required String receiverID}) async {
-    String token = await SessionManager.getToken() ?? '';
     List<MessageModel> data = [];
     try {
-      dio.options.headers['x-access-token'] = token;
       final response = await dio.get(
         '${link}get_latest_self_message',
         data: {'userID': senderID},
@@ -78,6 +75,7 @@ class KonsultasiAPI {
     if (data.isNotEmpty) {
       String imagePath = await saveBase64Image(base64String: data.first.image);
       int res = await sqlite.saveNewMessage(
+          id_message: data.first.idmessage.toString(),
           conversation_id: data.first.conversationId.toString(),
           id_sender: data.first.idsender.toString(),
           id_receiver: data.first.idreceiver.toString(),
@@ -88,33 +86,45 @@ class KonsultasiAPI {
           image: imagePath,
           messageRead: data.first.messageRead);
       if (res != 0) {
+        SocketProviderBloc socketBloc = SocketProviderBloc();
+        socketBloc.messageReceive(
+            messageId: data.first.idmessage.toString(),
+            senderID: senderID,
+            receiverID: receiverID);
         if (navigatorKey.currentContext != null) {
+          final socketBloc =
+              BlocProvider.of<SocketProviderBloc>(navigatorKey.currentContext!);
+          socketBloc.messageReceive(
+              messageId: data.first.idmessage.toString(),
+              senderID: senderID,
+              receiverID: receiverID);
           final konsultasiBloc =
               BlocProvider.of<KonsultasiBloc>(navigatorKey.currentContext!);
           await konsultasiBloc.getIndividualMessage(
-              senderID: senderID.toString(),
-              receiverID: receiverID.toString(),
-              token: token);
-          await konsultasiBloc.getLatestMesage(
-              userID: senderID.toString(), token: token);
-          log('New Message');
-          log('SENDER : $senderID <=> RECEIVER : $receiverID');
+              senderID: senderID.toString(), receiverID: receiverID.toString());
+          await konsultasiBloc.getLatestMesage(userID: senderID.toString());
+        } else {
+          SocketProviderBloc socketBloc = SocketProviderBloc();
+          socketBloc.connectSocket(userID: senderID);
+          socketBloc.messageReceive(
+              messageId: data.first.idmessage.toString(),
+              senderID: senderID,
+              receiverID: receiverID);
         }
-        sqlite.deleteSingleChatServer(id_message: data.first.idmessage.toString(), token: token);
+        sqlite.deleteSingleChatServer(
+            id_message: data.first.idmessage.toString());
       }
     }
   }
 
   Future<List<MessageModel>> getListLatestMessage(
-      {required String userID, required String token}) async {
+      {required String userID}) async {
     List<MessageModel> list = await sqlite.getListLatestMessage(userID: userID);
     return list;
   }
 
   Future<List<MessageModel>> getIndividualMessage(
-      {required String senderID,
-      required String receiverID,
-      required String token}) async {
+      {required String senderID, required String receiverID}) async {
     List<MessageModel> list = await sqlite.getIndividualMessage(
         senderID: senderID, receiverID: receiverID);
     return list;
@@ -126,8 +136,7 @@ class KonsultasiAPI {
       required String message,
       required String image,
       required String fcm_token,
-      required String title,
-      required String token}) async {
+      required String title}) async {
     String imagePath = await saveBase64Image(base64String: image);
     MessageModel res = await sqlite.sendMessage(
         conversation_id: '$id_sender-$id_receiver',
@@ -148,11 +157,9 @@ class KonsultasiAPI {
   Future<void> saveMesagetoServer(
       {required MessageModel entry,
       required String fcm_token,
-      required String title,
-      required String token}) async {
+      required String title}) async {
     String image = await fileToBase64(entry.image.toString());
     try {
-      dio.options.headers['x-access-token'] = token;
       final response = await dio.post(
         '${link}send_message',
         data: {
@@ -169,7 +176,6 @@ class KonsultasiAPI {
           "title": title,
         },
       );
-      await sqlite.updateStatusChat(messageRead: 0,id_message: entry.idmessage.toString());
       log('Server Message : ${response.data['message']}');
     } on DioException catch (error) {
       if (error.response != null) {
@@ -178,7 +184,8 @@ class KonsultasiAPI {
         log(error.requestOptions.toString());
         log(error.message.toString());
       }
-      await sqlite.updateStatusChat(messageRead: null,id_message: entry.idmessage.toString());
+      await sqlite.updateStatusChat(
+          messageRead: null, id_message: entry.idmessage.toString());
     }
   }
 

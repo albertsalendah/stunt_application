@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/custom_widget/blue_header_01.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/pages/Login_Register/login_register_api.dart';
 import 'package:stunt_application/pages/Login_Register/register.dart';
@@ -71,29 +72,30 @@ class _LoginState extends State<Login> {
                               child: Text('No. WhatsApp'),
                             ),
                             TextFormField(
-                                controller: no_wa,
-                                focusNode: focusNodes[0],
-                                onEditingComplete: () =>
-                                    FocusScope.of(context).nextFocus(),
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
-                                ],
-                                decoration: InputDecoration(
-                                    hintText: 'No. WhatsApp',
-                                    prefixIcon: const Padding(
-                                      padding:
-                                          EdgeInsets.only(left: 8, right: 5),
-                                      child: Text(
-                                        '+62 |',
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ),
-                                    prefixIconConstraints: const BoxConstraints(
-                                        minWidth: 0, minHeight: 0),
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)))),
+                              controller: no_wa,
+                              focusNode: focusNodes[0],
+                              onEditingComplete: () =>
+                                  FocusScope.of(context).nextFocus(),
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
+                              decoration: InputDecoration(
+                                hintText: 'No. WhatsApp',
+                                prefixIcon: const Padding(
+                                  padding: EdgeInsets.only(left: 8, right: 5),
+                                  child: Text(
+                                    '+62 |',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                                prefixIconConstraints: const BoxConstraints(
+                                    minWidth: 0, minHeight: 0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -107,32 +109,33 @@ class _LoginState extends State<Login> {
                               child: Text('Kata Sandi'),
                             ),
                             TextFormField(
-                                controller: pass,
-                                focusNode: focusNodes[1],
-                                onEditingComplete: () =>
-                                    btnFocus.requestFocus(),
-                                obscureText: !passwordVisible,
-                                decoration: InputDecoration(
-                                    hintText: 'masukkan kata sandi',
-                                    prefixIcon: const Icon(
-                                      Icons.lock_outline,
-                                      color: Colors.grey,
-                                    ),
-                                    suffixIcon: IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          passwordVisible = !passwordVisible;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        !passwordVisible
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                      ),
-                                    ),
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8)))),
+                              controller: pass,
+                              focusNode: focusNodes[1],
+                              onEditingComplete: () => btnFocus.requestFocus(),
+                              obscureText: !passwordVisible,
+                              decoration: InputDecoration(
+                                hintText: 'masukkan kata sandi',
+                                prefixIcon: const Icon(
+                                  Icons.lock_outline,
+                                  color: Colors.grey,
+                                ),
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      passwordVisible = !passwordVisible;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    !passwordVisible
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -177,10 +180,17 @@ class _LoginState extends State<Login> {
                             onPressed: () async {
                               if (no_wa.text.isNotEmpty &&
                                   pass.text.isNotEmpty) {
+                                showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) {
+                                      return const PopUpLoading();
+                                    });
                                 API_Message result = await context
                                     .read<LoginBloc>()
                                     .login(
                                         noHp: no_wa.text, password: pass.text);
+                                Navigator.pop(context);
                                 if (result.status) {
                                   clear_field();
                                 } else {

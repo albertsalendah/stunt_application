@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/Bloc/AllBloc/all_bloc.dart';
 import 'package:stunt_application/Bloc/LogIn/login_state.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/firebase_options.dart';
 import 'package:stunt_application/pages/Login_Register/login.dart';
 import 'package:stunt_application/utils/firebase_api.dart';
@@ -12,7 +13,6 @@ import 'package:stunt_application/utils/vaksin_notification.dart';
 import 'Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import 'Bloc/LogIn/login_bloc.dart';
 import 'navigation_bar.dart';
-// ignore: depend_on_referenced_packages
 import 'package:timezone/data/latest_all.dart' as tz;
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -20,13 +20,9 @@ final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await FirebaseApi().initNotifications();
   await FirebaseApi().initPushNotifications();
   await FirebaseApi().initLocalNotification();
   await SqliteHelper().database;
-  // String databasePath = await getDatabasesPath();
-  //   String fullpath = path.join(databasePath, 'stunt_app.db');
-  // await deleteDatabase(fullpath);
   await VaksinNotification().initNotifications();
   tz.initializeTimeZones();
   runApp(
@@ -34,6 +30,7 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (context) => AllBloc()),
         BlocProvider(create: (context) => LoginBloc()),
+        BlocProvider(create: (context) => SocketProviderBloc()),
         BlocProvider(create: (context) => KonsultasiBloc()),
       ],
       child: const MyApp(),

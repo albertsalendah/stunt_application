@@ -1,7 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:convert';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:stunt_application/navigation_bar.dart';
@@ -11,12 +10,10 @@ import '../pages/Konsultasi/konsultasi_api.dart';
 
 KonsultasiAPI api = KonsultasiAPI();
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  //final id_message = message.data['id_message'];
   final senderID = message.data['senderID'];
   final receiverID = message.data['receiverID'];
   api.getLatestMessageFromServer(senderID: senderID, receiverID: receiverID);
-  // print('Title : ${message.notification?.title}');
-  // print('Body : ${message.notification?.body}');
-  // print('Payload : ${message.data}');
 }
 
 class FirebaseApi {

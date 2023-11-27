@@ -23,6 +23,7 @@ class _KonsultasiState extends State<Konsultasi> {
   User user = User();
   String token = '';
   List<MessageModel> listMessage = [];
+  List<MessageModel> listAllUnread = [];
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _KonsultasiState extends State<Konsultasi> {
   Future<void> fetchData() async {
     await context
         .read<KonsultasiBloc>()
-        .getLatestMesage(userID: user.userID.toString(), token: token);
+        .getLatestMesage(userID: user.userID.toString());
   }
 
   @override
@@ -123,6 +124,7 @@ class _KonsultasiState extends State<Konsultasi> {
                       DateTime dateTimeB = DateTime.parse('${b.tanggalkirim}');
                       return dateTimeB.compareTo(dateTimeA);
                     });
+                    listAllUnread = state.listAllUnread;
                   }
                   return Expanded(
                     child: SizedBox(
@@ -133,10 +135,14 @@ class _KonsultasiState extends State<Konsultasi> {
                         child: ListView.builder(
                           itemCount: listMessage.length,
                           itemBuilder: (context, index) {
+                            var count = listAllUnread.where((element) =>
+                                element.conversationId ==
+                                listMessage[index].conversationId);
                             return Column(
                               children: [
                                 ChatCard(
                                   messageModel: listMessage[index],
+                                  totalUnread: count.length,
                                 ),
                                 const SizedBox(
                                   height: 8,

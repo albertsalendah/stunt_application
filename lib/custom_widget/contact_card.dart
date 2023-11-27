@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
 import '../models/user.dart';
 import '../pages/Konsultasi/chat_page.dart';
 
@@ -14,6 +17,7 @@ class ContactCard extends StatefulWidget {
 
 class _ContactCardState extends State<ContactCard> {
   String foto = '';
+  bool isOnline = false;
 
   @override
   void initState() {
@@ -73,45 +77,57 @@ class _ContactCardState extends State<ContactCard> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      margin: EdgeInsets.fromLTRB(
-                          0 * fem, 0 * fem, 11 * fem, 0 * fem),
-                      padding: EdgeInsets.fromLTRB(
-                          28 * fem, 27 * fem, 2 * fem, 3 * fem),
-                      width: 39 * fem,
-                      height: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xfff0f0f0)),
-                        borderRadius: BorderRadius.circular(19.5 * fem),
-                        image: widget.user.foto != null &&
-                                widget.user.foto!.isNotEmpty
-                            ? DecorationImage(
-                                fit: BoxFit.cover,
-                                image: MemoryImage(
-                                  base64Decode(
-                                    widget.user.foto.toString(),
+                    BlocBuilder<SocketProviderBloc, SocketState>(
+                      builder: (context, state) {
+                        if (state is UserConnected) {
+                          if (widget.user.userID == state.connectedUser) {
+                            isOnline = true;
+                          }
+                        } else if (state is UserDisonnected) {
+                          if (widget.user.userID == state.disconnectedUser) {
+                            isOnline = false;
+                          }
+                        }
+                        return Container(
+                          margin: EdgeInsets.only(right: 11 * fem),
+                          width: 39 * fem,
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xfff0f0f0)),
+                            borderRadius: BorderRadius.circular(19.5 * fem),
+                          ),
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 39.0 * fem,
+                                backgroundImage: widget.user.foto != null &&
+                                        widget.user.foto!.isNotEmpty
+                                    ? MemoryImage(base64Decode(
+                                            widget.user.foto.toString()))
+                                        as ImageProvider
+                                    : const AssetImage(
+                                        'assets/images/group-1-jAH.png'),
+                              ),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: SizedBox(
+                                  width: 11 * fem,
+                                  height: 11 * fem,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(4.5 * fem),
+                                      color: isOnline
+                                          ? const Color(0xff12b66a)
+                                          : Colors.red,
+                                    ),
                                   ),
                                 ),
                               )
-                            : const DecorationImage(
-                                fit: BoxFit.cover,
-                                image:
-                                    AssetImage('assets/images/group-1-jAH.png'),
-                              ),
-                      ),
-                      child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 9 * fem,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4.5 * fem),
-                              color: const Color(0xff12b66a),
-                            ),
+                            ],
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                     SizedBox(
                       height: double.infinity,

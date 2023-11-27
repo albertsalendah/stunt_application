@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/pages/Akun/akun.dart';
 import 'package:stunt_application/pages/Home/home.dart';
 import 'package:stunt_application/pages/Imunisasi/imunisasi.dart';
 import 'package:stunt_application/pages/Konsultasi/konsultasi.dart';
-
 import 'Bloc/AllBloc/all_bloc.dart';
 import 'Bloc/LogIn/login_bloc.dart';
 import 'models/data_anak_model.dart';
@@ -37,11 +37,13 @@ class _NavigationbarState extends State<Navigationbar> {
     const Akun()
   ];
   DataAnakModel dataAnak = DataAnakModel();
+  late AllBloc allBloc;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      allBloc = context.read<AllBloc>();
       token = await SessionManager.getToken() ?? '';
       user = await SessionManager.getUser();
       dataAnak = await SessionManager.getDataAnak();
@@ -55,6 +57,9 @@ class _NavigationbarState extends State<Navigationbar> {
       setState(() {
         selectedIndex = message == null ? widget.index : 2;
       });
+      context
+          .read<SocketProviderBloc>()
+          .connectSocket(userID: user.userID.toString());
     });
   }
 
@@ -64,24 +69,24 @@ class _NavigationbarState extends State<Navigationbar> {
   }
 
   Future<void> fetchdata() async {
-    await context.read<AllBloc>().getDataAnak(user: user, token: token);
-    await context.read<AllBloc>().getDataTabelStatusGizi(
+    await allBloc.getDataAnak(user: user, token: token);
+    await allBloc.getDataTabelStatusGizi(
         jenisKelamin: dataAnak.jeniskelamin ?? '', token: token);
     if (dataAnak.id_anak != null) {
-      await context.read<AllBloc>().getDetailDataAnak(
+      await allBloc.getDetailDataAnak(
           user: user, id_anak: dataAnak.id_anak ?? '', token: token);
-      await context.read<AllBloc>().getListJadwalVaksin(
+      await allBloc.getListJadwalVaksin(
           userID: user.userID ?? '',
           id_anak: dataAnak.id_anak ?? '',
           token: token);
     }
     String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    await context.read<AllBloc>().getMenuMakan(
+    await allBloc.getMenuMakan(
         userID: user.userID ?? '',
         id_anak: dataAnak.id_anak ?? '',
         tanggal: selectedDate,
         token: token);
-    await context.read<AllBloc>().getRekomendasiMenu(token: token);
+    await allBloc.getRekomendasiMenu(token: token);
   }
 
   @override

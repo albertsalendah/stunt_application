@@ -39,10 +39,13 @@ class _HomeState extends State<Home> {
   List<JadwalVaksinModel> listJadwalVaksin = [];
   List<DataAnakModel> listAnak = [];
 
+  late AllBloc allBloc;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      allBloc = context.read<AllBloc>();
       user = await fetch_user();
       token = await SessionManager.getToken() ?? '';
       if (listAnak.isEmpty) {
@@ -59,14 +62,14 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> fetch_data() async {
-    await context.read<AllBloc>().getDataAnak(user: user, token: token);
-    await context.read<AllBloc>().getDataTabelStatusGizi(
+    await allBloc.getDataAnak(user: user, token: token);
+    await allBloc.getDataTabelStatusGizi(
         jenisKelamin: dataAnak.jeniskelamin ?? '', token: token);
     dataAnak = await SessionManager.getDataAnak();
     if (dataAnak.id_anak != null) {
-      await context.read<AllBloc>().getDetailDataAnak(
+      await allBloc.getDetailDataAnak(
           user: user, id_anak: dataAnak.id_anak ?? '', token: token);
-      await context.read<AllBloc>().getListJadwalVaksin(
+      await allBloc.getListJadwalVaksin(
           userID: user.userID ?? '',
           id_anak: dataAnak.id_anak ?? '',
           token: token);
@@ -75,15 +78,15 @@ class _HomeState extends State<Home> {
         await SessionManager.saveDataAnak(listAnak[0]);
         dataAnak = await SessionManager.getDataAnak();
         if (dataAnak.id_anak != null) {
-          await context.read<AllBloc>().getDetailDataAnak(
+          await allBloc.getDetailDataAnak(
               user: user, id_anak: dataAnak.id_anak ?? '', token: token);
-          await context.read<AllBloc>().getListJadwalVaksin(
+          await allBloc.getListJadwalVaksin(
               userID: user.userID ?? '',
               id_anak: dataAnak.id_anak ?? '',
               token: token);
         }
       } else {
-        await context.read<AllBloc>().getDataAnak(user: user, token: token);
+        await allBloc.getDataAnak(user: user, token: token);
       }
     }
   }

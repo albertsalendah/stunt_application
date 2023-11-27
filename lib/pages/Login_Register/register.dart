@@ -129,58 +129,35 @@ class _RegisterState extends State<Register> {
                           height: 16,
                         ),
                         GestureDetector(
-                          onTap: () {
-                            pickPicture();
-                          },
-                          child: imagebytes != null
-                              ? CircleAvatar(
-                                  radius: 45.0,
-                                  backgroundImage: MemoryImage(imagebytes!),
-                                  child: Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: Container(
-                                      width: 90,
-                                      height: 45,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(200),
-                                        borderRadius: const BorderRadius.only(
-                                          bottomLeft: Radius.circular(65),
-                                          bottomRight: Radius.circular(65),
-                                        ),
-                                      ),
-                                      child: const Center(
-                                          child: Text(
-                                        'Foto',
-                                        style: TextStyle(color: Colors.black),
-                                      )),
-                                    ),
-                                  ),
-                                )
-                              : CircleAvatar(
-                                  radius: 45.0,
-                                  backgroundImage: const AssetImage(
+                            onTap: () {
+                              pickPicture();
+                            },
+                            child: CircleAvatar(
+                              radius: 45.0,
+                              backgroundImage: imagebytes != null
+                                  ? MemoryImage(imagebytes!) as ImageProvider
+                                  : const AssetImage(
                                       'assets/images/group-115.png'),
-                                  child: Align(
-                                    alignment: Alignment.bottomCenter,
-                                    child: Container(
-                                      width: 90,
-                                      height: 45,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(200),
-                                        borderRadius: const BorderRadius.only(
-                                          bottomLeft: Radius.circular(65),
-                                          bottomRight: Radius.circular(65),
-                                        ),
-                                      ),
-                                      child: const Center(
-                                          child: Text(
-                                        'Foto',
-                                        style: TextStyle(color: Colors.black),
-                                      )),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  width: 90,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withAlpha(200),
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(65),
+                                      bottomRight: Radius.circular(65),
                                     ),
                                   ),
+                                  child: const Center(
+                                      child: Text(
+                                    'Foto',
+                                    style: TextStyle(color: Colors.black),
+                                  )),
                                 ),
-                        ),
+                              ),
+                            )),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
@@ -338,7 +315,7 @@ class _RegisterState extends State<Register> {
                                   onEditingComplete: () => FocusManager
                                       .instance.primaryFocus
                                       ?.unfocus(),
-                                  onChanged: (value){
+                                  onChanged: (value) {
                                     autoScroll(keys[3]);
                                   },
                                   obscureText: !passwordVisible,

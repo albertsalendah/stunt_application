@@ -416,63 +416,38 @@ class _AkunState extends State<Akun> {
                 });
               },
               child: Container(
-                margin:
-                    EdgeInsets.fromLTRB(0 * fem, 0 * fem, 12 * fem, 0 * fem),
-                padding: EdgeInsets.only(left: 8 * fem),
-                width: 65 * fem,
-                height: 65 * fem,
-                child: user.foto != null && user.foto!.isNotEmpty
-                    ? CircleAvatar(
-                        radius: 65.0,
-                        backgroundImage:
-                            MemoryImage(base64Decode(user.foto.toString())),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            width: 65,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(200),
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(65),
-                                bottomRight: Radius.circular(65),
-                              ),
-                            ),
-                            child: const Align(
-                                alignment: Alignment.topCenter,
-                                child: Text(
-                                  'Ubah',
-                                  style: TextStyle(color: Colors.black),
-                                )),
+                  margin:
+                      EdgeInsets.fromLTRB(0 * fem, 0 * fem, 12 * fem, 0 * fem),
+                  padding: EdgeInsets.only(left: 8 * fem),
+                  width: 65 * fem,
+                  height: 65 * fem,
+                  child: CircleAvatar(
+                    radius: 65.0,
+                    backgroundImage: user.foto != null && user.foto!.isNotEmpty
+                        ? MemoryImage(base64Decode(user.foto.toString()))
+                            as ImageProvider
+                        : const AssetImage('assets/images/group-115.png'),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: 65,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(200),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(65),
+                            bottomRight: Radius.circular(65),
                           ),
                         ),
-                      )
-                    : CircleAvatar(
-                        radius: 65.0,
-                        backgroundImage:
-                            const AssetImage('assets/images/group-115.png'),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            width: 65,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(200),
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(65),
-                                bottomRight: Radius.circular(65),
-                              ),
-                            ),
-                            child: const Align(
-                                alignment: Alignment.topCenter,
-                                child: Text(
-                                  'Ubah',
-                                  style: TextStyle(color: Colors.black),
-                                )),
-                          ),
-                        ),
+                        child: const Align(
+                            alignment: Alignment.topCenter,
+                            child: Text(
+                              'Ubah',
+                              style: TextStyle(color: Colors.black),
+                            )),
                       ),
-              ),
+                    ),
+                  )),
             ),
             Container(
               margin: EdgeInsets.fromLTRB(0 * fem, 14 * fem, 0 * fem, 14 * fem),

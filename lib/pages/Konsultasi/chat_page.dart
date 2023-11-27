@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, non_constant_identifier_names, use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
@@ -8,9 +9,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mime/mime.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
 import 'package:stunt_application/custom_widget/sendMessageCard.dart';
 import 'package:stunt_application/models/message_model.dart';
-
+import 'package:stunt_application/utils/sqlite_helper.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiState.dart';
 import '../../custom_widget/popup_error.dart';
@@ -45,24 +48,23 @@ class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   bool isEmojiVisible = false;
   User user = User();
-  String token = '';
   FocusNode focusNode = FocusNode();
   List<MessageModel> listMessage = [];
   List<PlatformFile> picked_foto = [];
   String foto = '';
+  late SocketProviderBloc socketBloc;
+  Timer? _checkTypingTimer;
+  SqliteHelper sqlite = SqliteHelper();
 
   @override
   void initState() {
     super.initState();
+    socketBloc = context.read<SocketProviderBloc>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await SessionManager.getUser();
-      token = await SessionManager.getToken() ?? '';
       await fetchData();
       if (listMessage.isEmpty) {
-        log('List Empty');
         await fetchData();
-      } else {
-        log('List Fine');
       }
     });
     focusNode.addListener(() {
@@ -76,9 +78,20 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _scrollController.dispose();
+  }
+
+  startTimer() {
+    socketBloc.userTyping(isTyping: true, receiverID: widget.receverID);
+    _checkTypingTimer = Timer(const Duration(milliseconds: 600), () {
+      socketBloc.userTyping(isTyping: false, receiverID: widget.receverID);
+    });
+  }
+
+  resetTimer() {
+    _checkTypingTimer?.cancel();
+    startTimer();
   }
 
   void onEmojiSelected(Emoji emoji) {
@@ -87,16 +100,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> fetchData() async {
-    log('Here : ${widget.receverID}');
     await context.read<KonsultasiBloc>().getIndividualMessage(
         senderID: user.userID.toString(),
         receiverID: user.userID.toString() != widget.receverID
             ? widget.receverID.toString()
-            : widget.senderID,
-        token: token);
+            : widget.senderID);
     await context
         .read<KonsultasiBloc>()
-        .getLatestMesage(userID: user.userID.toString(), token: token);
+        .getLatestMesage(userID: user.userID.toString());
   }
 
   void pickPicture() async {
@@ -127,6 +138,17 @@ class _ChatPageState extends State<ChatPage> {
       }
     } on Exception catch (e) {
       log(e.toString());
+    }
+  }
+
+  void messageRead(List<MessageModel> unReadMessageList) async {
+    for (var item in unReadMessageList) {
+      socketBloc.messageRead(
+          messageId: item.idmessage.toString(),
+          senderID: item.idreceiver.toString(),
+          receiverID: item.idsender.toString());
+      await sqlite.updateStatusChat(
+          messageRead: 1, id_message: item.idmessage.toString());
     }
   }
 
@@ -196,6 +218,19 @@ class _ChatPageState extends State<ChatPage> {
                 );
               } else if (state is ListIndividualMesasage) {
                 listMessage = state.listIndividualMessage;
+                if (listMessage.isNotEmpty) {
+                  List<MessageModel> unReadMessageList = listMessage
+                      .where((item) =>
+                          user.userID.toString() != item.idsender &&
+                          item.messageRead != 1)
+                      .toList();
+                  unReadMessageList.sort((a, b) {
+                    DateTime dateTimeA = DateTime.parse('${a.tanggalkirim}');
+                    DateTime dateTimeB = DateTime.parse('${b.tanggalkirim}');
+                    return dateTimeA.compareTo(dateTimeB);
+                  });
+                  messageRead(unReadMessageList);
+                }
               }
               return Expanded(
                 child: SizedBox(
@@ -204,7 +239,6 @@ class _ChatPageState extends State<ChatPage> {
                       await fetchData();
                     },
                     child: ListView.builder(
-                      //shrinkWrap: true,
                       reverse: true,
                       itemCount: listMessage.length,
                       itemBuilder: (context, index) {
@@ -277,6 +311,9 @@ class _ChatPageState extends State<ChatPage> {
                             controller: messageController,
                             maxLines: 5,
                             minLines: 1,
+                            onChanged: (value) {
+                              resetTimer();
+                            },
                             decoration: InputDecoration(
                               hintText: 'Message',
                               contentPadding: const EdgeInsets.symmetric(
@@ -312,31 +349,31 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          log('Chat Page id_receiver : ${widget.receiverFCM}');
-                          MessageModel result = await api.sendMessage(
-                              id_sender: user.userID.toString(),
-                              id_receiver:
-                                  user.userID.toString() != widget.receverID
-                                      ? widget.receverID.toString()
-                                      : widget.senderID,
-                              message: messageController.text,
-                              image: foto,
-                              fcm_token: widget.receiverFCM.toString(),
-                              title: user.nama.toString(),
-                              token: token);
-                          if (result.idmessage != null &&
-                              result.idmessage!.isNotEmpty) {
-                            await fetchData();
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            foto = '';
-                            messageController.clear();
-                            setState(() {});
-                            await api.saveMesagetoServer(
-                                entry: result,
-                                fcm_token: widget.receiverFCM.toString(),
-                                title: user.nama.toString(),
-                                token: token);
-                          }
+                          await api
+                              .sendMessage(
+                                  id_sender: user.userID.toString(),
+                                  id_receiver:
+                                      user.userID.toString() != widget.receverID
+                                          ? widget.receverID.toString()
+                                          : widget.senderID,
+                                  message: messageController.text,
+                                  image: foto,
+                                  fcm_token: widget.receiverFCM.toString(),
+                                  title: user.nama.toString())
+                              .then((value) async {
+                            if (value.idmessage != null &&
+                                value.idmessage!.isNotEmpty) {
+                              foto = '';
+                              messageController.clear();
+                              setState(() {});
+                              await fetchData().then((_) async {
+                                await api.saveMesagetoServer(
+                                    entry: value,
+                                    fcm_token: widget.receiverFCM.toString(),
+                                    title: user.nama.toString());
+                              });
+                            }
+                          });
                         },
                         child: const CircleAvatar(
                           child: Icon(Icons.send),
@@ -364,6 +401,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Container header(double fem, double ffem) {
+    bool isOnline = false;
+    bool isTyping = false;
     return Container(
       padding: EdgeInsets.fromLTRB(16 * fem, 16 * fem, 0 * fem, 0 * fem),
       width: double.infinity,
@@ -394,55 +433,78 @@ class _ChatPageState extends State<ChatPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    margin: EdgeInsets.fromLTRB(
-                        0 * fem, 0 * fem, 11 * fem, 0 * fem),
-                    width: 45 * fem,
-                    height: double.infinity,
-                    child: widget.receiverFoto != null &&
-                            widget.receiverFoto!.isNotEmpty
-                        ? CircleAvatar(
-                            radius: 39.0 * fem,
-                            backgroundImage: MemoryImage(
-                              base64Decode(
-                                widget.receiverFoto.toString(),
+                      margin: EdgeInsets.fromLTRB(
+                          0 * fem, 0 * fem, 11 * fem, 0 * fem),
+                      width: 45 * fem,
+                      height: double.infinity,
+                      child: CircleAvatar(
+                        radius: 39.0 * fem,
+                        backgroundImage: widget.receiverFoto != null &&
+                                widget.receiverFoto!.isNotEmpty
+                            ? MemoryImage(
+                                base64Decode(
+                                  widget.receiverFoto.toString(),
+                                ),
+                              ) as ImageProvider
+                            : const AssetImage('assets/images/group-1-jAH.png'),
+                      )),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.fromLTRB(
+                            0 * fem, 0 * fem, 0 * fem, 2 * fem),
+                        child: Text(
+                          widget.receiverNama ?? '',
+                          style: TextStyle(
+                            fontSize: 14 * ffem,
+                            fontWeight: FontWeight.w600,
+                            height: 1.2125 * ffem / fem,
+                            color: const Color(0xff161f35),
+                          ),
+                        ),
+                      ),
+                      BlocBuilder<SocketProviderBloc, SocketState>(
+                        builder: (context, state) {
+                          if (state is UserConnected) {
+                            if (widget.receverID == state.connectedUser) {
+                              isOnline = true;
+                            }
+                          } else if (state is UserDisonnected) {
+                            if (widget.receverID == state.disconnectedUser) {
+                              isOnline = false;
+                            }
+                          } else if (state is UserTyping) {
+                            isTyping = state.isTyping;
+                          }
+                          return Visibility(
+                            visible: !isTyping,
+                            replacement: Text(
+                              'Typing...',
+                              style: TextStyle(
+                                fontSize: 12 * ffem,
+                                fontWeight: FontWeight.w400,
+                                height: 1.6666666667 * ffem / fem,
+                                color: const Color(0xff707070),
                               ),
                             ),
-                          )
-                        : CircleAvatar(
-                            radius: 45.0 * fem,
-                            backgroundImage: const AssetImage(
-                                'assets/images/group-1-jAH.png'),
-                          ),
-                  ),
-                  SizedBox(
-                    height: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          margin: EdgeInsets.fromLTRB(
-                              0 * fem, 0 * fem, 0 * fem, 2 * fem),
-                          child: Text(
-                            widget.receiverNama ?? '',
-                            style: TextStyle(
-                              fontSize: 14 * ffem,
-                              fontWeight: FontWeight.w600,
-                              height: 1.2125 * ffem / fem,
-                              color: const Color(0xff161f35),
+                            child: Text(
+                              !isOnline
+                                  ? widget.receiverKet != null
+                                      ? widget.receiverKet.toString()
+                                      : ''
+                                  : 'Online',
+                              style: TextStyle(
+                                fontSize: 12 * ffem,
+                                fontWeight: FontWeight.w400,
+                                height: 1.6666666667 * ffem / fem,
+                                color: const Color(0xff707070),
+                              ),
                             ),
-                          ),
-                        ),
-                        Text(
-                          widget.receiverKet ?? '',
-                          style: TextStyle(
-                            fontSize: 12 * ffem,
-                            fontWeight: FontWeight.w400,
-                            height: 1.6666666667 * ffem / fem,
-                            color: const Color(0xff707070),
-                          ),
-                        ),
-                      ],
-                    ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

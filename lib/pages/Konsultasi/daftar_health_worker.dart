@@ -37,7 +37,7 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
   }
 
   Future<void> fetchData() async {
-    await context.read<KonsultasiBloc>().getDataHealthWorker(token: token);
+    await context.read<KonsultasiBloc>().getDataHealthWorker();
   }
 
   List<User> get searchfilteredList {
@@ -84,17 +84,16 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
                     onRefresh: () async {
                       await fetchData();
                     },
-                    child: ListView(
-                        children: [
-                          SizedBox(
-                              height: 40 * fem,
-                              width: 40 * fem,
-                              child: const CircularProgressIndicator()),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          const Text('Memuat Data')
-                        ]),
+                    child: ListView(children: [
+                      SizedBox(
+                          height: 40 * fem,
+                          width: 40 * fem,
+                          child: const CircularProgressIndicator()),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      const Text('Memuat Data')
+                    ]),
                   ),
                 );
               } else if (state is DataErrorState) {
@@ -115,6 +114,12 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
                 );
               } else if (state is HealthWorkerLoaded) {
                 listHealthWorker = state.healthWorker;
+                listHealthWorker.sort((a, b) {
+                  return a.nama
+                      .toString()
+                      .toLowerCase()
+                      .compareTo(b.nama.toString().toLowerCase());
+                });
                 log('List : ${listHealthWorker.length}');
               }
               if (listHealthWorker.isEmpty) {

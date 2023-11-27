@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/models/api_massage.dart';
 import '../../pages/Login_Register/login_register_api.dart';
 import '../../utils/SessionManager.dart';
 import '../../utils/config.dart';
 import 'login_state.dart';
+import 'package:stunt_application/main.dart';
 
 class LoginBloc extends Cubit<LoginState> {
   LoginBloc() : super(LoginInitial());
@@ -30,6 +32,9 @@ class LoginBloc extends Cubit<LoginState> {
     await SessionManager.logout();
     final isLoggedIn = await SessionManager.isUserLoggedIn();
     final isSessionExpired = await SessionManager.isSessionExpired();
+    if(navigatorKey.currentContext != null){
+      navigatorKey.currentContext?.read<SocketProviderBloc>().disconnectSocket();
+    }
     emit(LoggedInState(isLoggedIn, isSessionExpired));
   }
 }
