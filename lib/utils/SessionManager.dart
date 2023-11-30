@@ -103,4 +103,19 @@ class SessionManager {
       return DataAnakModel();
     }
   }
+
+  static Future<void> saveCurrentPage(String receiverId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('currentPage', receiverId);
+  }
+
+  static Future<String?> getCurrentPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('currentPage');
+  }
+
+  static Future<void> removeCurrentPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('currentPage');
+  }
 }

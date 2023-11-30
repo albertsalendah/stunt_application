@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_success.dart';
 import 'package:stunt_application/models/api_massage.dart';
 import 'package:stunt_application/models/user.dart';
@@ -49,6 +50,9 @@ class _DataAnakState extends State<DataAnak> {
   List<GlobalKey<FormState>> keys =
       List.generate(6, (index) => GlobalKey<FormState>());
   List<String> gender = ['Laki-Laki', 'Perempuan'];
+
+  final GlobalKey<State> tambahDataAnakLoadingKey = GlobalKey<State>();
+  final GlobalKey<State> updateDataAnakLoadingKey = GlobalKey<State>();
 
   @override
   void initState() {
@@ -105,6 +109,7 @@ class _DataAnakState extends State<DataAnak> {
   }
 
   Future<void> fetchData(User user, String token) async {
+    dataAnak = await SessionManager.getDataAnak();
     await context.read<AllBloc>().getDataAnak(user: user, token: token);
     await context.read<AllBloc>().getDetailDataAnak(
         user: user, id_anak: dataAnak.id_anak ?? '', token: token);
@@ -114,7 +119,7 @@ class _DataAnakState extends State<DataAnak> {
     return await SessionManager.getUser();
   }
 
-  void setData() {
+  Future<void> setData() async {
     if (dataAnak.id_anak != null) {
       nama_anak.text = dataAnak.namaanak ?? '';
       selected_gender = dataAnak.jeniskelamin ?? '';
@@ -125,7 +130,7 @@ class _DataAnakState extends State<DataAnak> {
     }
   }
 
-  Future<void> addDataAnak() async {
+  Future<void> addDataAnak(BuildContext contextConfirm) async {
     if (user.userID != null &&
         '${user.userID}'.isNotEmpty &&
         token.isNotEmpty &&
@@ -135,36 +140,56 @@ class _DataAnakState extends State<DataAnak> {
         panjang_badan.text.isNotEmpty &&
         lingkar_kepala.text.isNotEmpty &&
         selected_gender.isNotEmpty) {
-      API_Message result = await api.addDataAnak(
-          userID: user.userID ?? '',
-          namaAnak: nama_anak.text,
-          jenisKelamin: selected_gender,
-          tanggalLahir: FormatTgl().format_tanggal(tgl_lahir.text),
-          beratbadan: berat_badan.text,
-          tinggibadan: panjang_badan.text,
-          lingkarkepala: lingkar_kepala.text,
-          token: token);
-      if (result.status) {
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => PopUpSuccess(message: result.message ?? ''),
-        ).then((value) {
-          clearfield();
-          fetchData(user, token);
-          enable = false;
+      Navigator.pop(contextConfirm);
+      showDialog(
+        context: context,
+        builder: (loadcontext) => PopUpLoading(
+          key: tambahDataAnakLoadingKey,
+        ),
+      );
+      try {
+        await api
+            .addDataAnak(
+                userID: user.userID ?? '',
+                namaAnak: nama_anak.text,
+                jenisKelamin: selected_gender,
+                tanggalLahir: FormatTgl().format_tanggal(tgl_lahir.text),
+                beratbadan: berat_badan.text,
+                tinggibadan: panjang_badan.text,
+                lingkarkepala: lingkar_kepala.text,
+                token: token)
+            .then((result) {
+          Navigator.of(tambahDataAnakLoadingKey.currentContext ?? context)
+              .pop();
+          if (result.status) {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpSuccess(message: result.message ?? ''),
+            ).then((value) {
+              clearfield();
+              fetchData(user, token);
+              enable = false;
+            });
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpError(message: result.message ?? ''),
+            );
+          }
         });
-      } else {
-        Navigator.pop(context);
+      } catch (error) {
+        log('Error Tambah Data Anak -> $error');
+        Navigator.of(tambahDataAnakLoadingKey.currentContext ?? context).pop();
         showDialog(
           context: context,
-          builder: (context) => PopUpError(message: result.message ?? ''),
+          builder: (context) => const PopUpError(
+              message: 'Terjadi Kesalahan Saat Menambahkan Data Anak'),
         );
       }
     }
   }
 
-  Future<void> updateDataAnak() async {
+  Future<void> updateDataAnak(BuildContext contextConfirm) async {
     if (user.userID != null &&
         '${user.userID}'.isNotEmpty &&
         token.isNotEmpty &&
@@ -174,31 +199,51 @@ class _DataAnakState extends State<DataAnak> {
         panjang_badan.text.isNotEmpty &&
         lingkar_kepala.text.isNotEmpty &&
         selected_gender.isNotEmpty) {
-      API_Message result = await api.updateDataAnak(
-          id_anak: dataAnak.id_anak ?? '',
-          userID: user.userID ?? '',
-          namaAnak: nama_anak.text,
-          jenisKelamin: selected_gender,
-          tanggalLahir: FormatTgl().format_tanggal(tgl_lahir.text),
-          beratbadan: berat_badan.text,
-          tinggibadan: panjang_badan.text,
-          lingkarkepala: lingkar_kepala.text,
-          token: token);
-      if (result.status) {
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => PopUpSuccess(message: result.message ?? ''),
-        ).then((value) {
-          clearfield();
-          fetchData(user, token);
-          enable = false;
+      Navigator.pop(contextConfirm);
+      showDialog(
+        context: context,
+        builder: (loadcontext) => PopUpLoading(
+          key: updateDataAnakLoadingKey,
+        ),
+      );
+      try {
+        await api
+            .updateDataAnak(
+                id_anak: dataAnak.id_anak ?? '',
+                userID: user.userID ?? '',
+                namaAnak: nama_anak.text,
+                jenisKelamin: selected_gender,
+                tanggalLahir: FormatTgl().format_tanggal(tgl_lahir.text),
+                beratbadan: berat_badan.text,
+                tinggibadan: panjang_badan.text,
+                lingkarkepala: lingkar_kepala.text,
+                token: token)
+            .then((result) {
+          Navigator.of(updateDataAnakLoadingKey.currentContext ?? context)
+              .pop();
+          if (result.status) {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpSuccess(message: result.message ?? ''),
+            ).then((_) {
+              clearfield();
+              fetchData(user, token);
+              enable = false;
+            });
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpError(message: result.message ?? ''),
+            );
+          }
         });
-      } else {
-        Navigator.pop(context);
+      } catch (error) {
+        log('Error Tambah Data Anak -> $error');
+        Navigator.of(updateDataAnakLoadingKey.currentContext ?? context).pop();
         showDialog(
           context: context,
-          builder: (context) => PopUpError(message: result.message ?? ''),
+          builder: (context) => const PopUpError(
+              message: 'Terjadi Kesalahan Saat Menambahkan Data Anak'),
         );
       }
     }
@@ -622,13 +667,15 @@ class _DataAnakState extends State<DataAnak> {
                                         if (tambah) {
                                           showDialog(
                                             context: context,
-                                            builder: (context) => PopUpConfirm(
+                                            builder: (contextConfirm) =>
+                                                PopUpConfirm(
                                               btnConfirmText: 'Simpan',
                                               btnCancelText: 'Batal',
                                               title: 'Simpan Data Anak',
                                               message: 'Simpan Data Anak?',
                                               onPressed: () async {
-                                                await addDataAnak();
+                                                await addDataAnak(
+                                                    contextConfirm);
                                                 if (widget.afterRegister) {
                                                   await checkUser();
                                                 }
@@ -642,28 +689,30 @@ class _DataAnakState extends State<DataAnak> {
                                                   .isNotEmpty) {
                                             showDialog(
                                               context: context,
-                                              builder: (context) =>
+                                              builder: (contextConfirm) =>
                                                   PopUpConfirm(
                                                 btnConfirmText: 'Ubah',
                                                 btnCancelText: 'Batal',
                                                 title: 'Ubah Data Anak',
                                                 message: 'Ubah Data Anak?',
                                                 onPressed: () async {
-                                                  await updateDataAnak();
+                                                  await updateDataAnak(
+                                                      contextConfirm);
                                                 },
                                               ),
                                             );
                                           } else {
                                             showDialog(
                                               context: context,
-                                              builder: (context) =>
+                                              builder: (contextConfirm) =>
                                                   PopUpConfirm(
                                                 btnConfirmText: 'Simpan',
                                                 btnCancelText: 'Batal',
                                                 title: 'Simpan Data Anak',
                                                 message: 'Simpan Data Anak?',
                                                 onPressed: () async {
-                                                  await addDataAnak();
+                                                  await addDataAnak(
+                                                      contextConfirm);
                                                   if (widget.afterRegister) {
                                                     await checkUser();
                                                   }

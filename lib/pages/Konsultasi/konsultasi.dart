@@ -1,4 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/custom_widget/chat_card.dart';
@@ -19,7 +21,7 @@ class Konsultasi extends StatefulWidget {
   State<Konsultasi> createState() => _KonsultasiState();
 }
 
-class _KonsultasiState extends State<Konsultasi> {
+class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
   User user = User();
   String token = '';
   List<MessageModel> listMessage = [];
@@ -28,6 +30,7 @@ class _KonsultasiState extends State<Konsultasi> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await SessionManager.getUser();
       token = await SessionManager.getToken() ?? '';
@@ -36,6 +39,35 @@ class _KonsultasiState extends State<Konsultasi> {
         await fetchData();
       }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.inactive:
+        log('KONSULTASI PAGE INACTIVE');
+        break;
+      case AppLifecycleState.resumed:
+        fetchData();
+        log('KONSULTASI PAGE RESUMED');
+        break;
+      case AppLifecycleState.paused:
+        log('KONSULTASI PAGE PAUSED');
+        break;
+      case AppLifecycleState.detached:
+        log('KONSULTASI PAGE  DETACHED');
+        break;
+      case AppLifecycleState.hidden:
+        log('KONSULTASI PAGE  HIDDEN');
+        break;
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
   }
 
   Future<void> fetchData() async {
@@ -82,38 +114,7 @@ class _KonsultasiState extends State<Konsultasi> {
               ),
               BlocBuilder<KonsultasiBloc, KonsultasiState>(
                 builder: (context, state) {
-                  if (state is DataInitialState) {
-                    return Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                                height: 40 * fem,
-                                width: 40 * fem,
-                                child: const CircularProgressIndicator()),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            const Text('Memuat Data')
-                          ]),
-                    );
-                  } else if (state is DataErrorState) {
-                    return Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error,
-                              color: Colors.red,
-                              size: 32 * fem,
-                            ),
-                            const SizedBox(
-                              height: 8,
-                            ),
-                            Text(state.errorMessage)
-                          ]),
-                    );
-                  } else if (state is ListLatestMesasage) {
+                  if (state is ListLatestMesasage) {
                     listMessage = state.listLatestMessage
                         .where((element) =>
                             element.conversationId !=

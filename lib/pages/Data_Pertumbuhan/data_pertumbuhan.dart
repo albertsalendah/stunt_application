@@ -7,12 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
 import '../../navigation_bar.dart';
 import '../../custom_widget/popup_error.dart';
 import '../../custom_widget/popup_success.dart';
-import '../../models/api_massage.dart';
 import '../../models/data_anak_model.dart';
 import '../../models/data_imt_5_18.dart';
 import '../../models/data_tabel_status_gizi_model.dart';
@@ -50,6 +50,8 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
   List<DataTabelStatusGizi> list_imt_umur = [];
   List<DataIMT> list_imt_umur_518 = [];
   List<String> ukur = ['Dikukur Terlentang', 'Dikukur Berdiri'];
+
+  final GlobalKey<State> updatedatapertumbuhanLoading = GlobalKey<State>();
 
   @override
   void initState() {
@@ -94,40 +96,64 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
     }
   }
 
-  Future<void> updateDataAnak() async {
+  Future<void> updateDataAnak(BuildContext contextConfirm) async {
     //api.addDataAnak(userID: userID, token: token)
-
+    Navigator.pop(contextConfirm);
     if (user.userID != null &&
         '${user.userID}'.isNotEmpty &&
         token.isNotEmpty &&
         berat_badan.text.isNotEmpty &&
         tinggi_badan.text.isNotEmpty) {
-      log('message');
-      API_Message result = await api.updateDataAnak(
-          id_anak: dataAnak.id_anak ?? '',
-          userID: user.userID ?? '',
-          namaAnak: dataAnak.namaanak ?? '',
-          jenisKelamin: dataAnak.jeniskelamin ?? '',
-          tanggalLahir: dataAnak.tanggallahir ?? '',
-          beratbadan: berat_badan.text,
-          tinggibadan: tinggi_badan.text,
-          lingkarkepala: dataAnak.lingkarkepala ?? '',
-          token: token);
-      if (result.status) {
-        Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (context) {
+          return PopUpLoading(
+            key: updatedatapertumbuhanLoading,
+          );
+        },
+      );
+      try {
+        await api
+            .updateDataAnak(
+                id_anak: dataAnak.id_anak ?? '',
+                userID: user.userID ?? '',
+                namaAnak: dataAnak.namaanak ?? '',
+                jenisKelamin: dataAnak.jeniskelamin ?? '',
+                tanggalLahir: dataAnak.tanggallahir ?? '',
+                beratbadan: berat_badan.text,
+                tinggibadan: tinggi_badan.text,
+                lingkarkepala: dataAnak.lingkarkepala ?? '',
+                token: token)
+            .then((result) {
+          Navigator.of(updatedatapertumbuhanLoading.currentContext ?? context).pop();
+          if (result.status) {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpSuccess(message: result.message ?? ''),
+            );
+            fetch_data();
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) => PopUpError(message: result.message ?? ''),
+            );
+            fetch_data();
+          }
+        });
+      } catch (error) {
+        log('Error Data Pertumbuhan => $error');
+        Navigator.of(updatedatapertumbuhanLoading.currentContext ?? context).pop();
         showDialog(
           context: context,
-          builder: (context) => PopUpSuccess(message: result.message ?? ''),
+          builder: (context) => const PopUpError(
+              message: 'Terjadi Kesalahan Saat Menyimpan Data'),
         );
-        fetch_data();
-      } else {
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => PopUpError(message: result.message ?? ''),
-        );
-        fetch_data();
       }
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => const PopUpError(message: 'Isi Semua Kolom'),
+      );
     }
   }
 
@@ -279,8 +305,6 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                                   'Hasil Pengukuran Terakhir ${setTgl(dataAnak.pengukuranTerakhir)}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
-                                childrenPadding:
-                                    const EdgeInsets.only(left: 20),
                                 children: [
                                   Visibility(
                                     visible: umurBln < 60,
@@ -291,8 +315,11 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                                                 dataAnak: dataAnak,
                                                 list_bb_umur: list_bb_umur,
                                                 umurBln: umurBln),
-                                        title: const Text(
-                                            'Hasil Berat Badan Menurut Umur (BB/U)')),
+                                        title: const FittedBox(
+                                          fit: BoxFit.fitWidth,
+                                          child: Text(
+                                              'Hasil Berat Badan Menurut Umur (BB/U)'),
+                                        )),
                                   ),
                                   Visibility(
                                     visible: umurBln < 60,
@@ -305,14 +332,17 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                                                 list_tb_umur: list_tb_umur,
                                                 selectedPengukuran:
                                                     selectedPengukuran),
-                                        title: Text(umurBln > 24
-                                            ? 'Hasil Tinggi Badan Menurut Umur (TB/U)'
-                                            : umurBln == 24
-                                                ? selectedPengukuran ==
-                                                        'Dikukur Terlentang'
-                                                    ? 'Hasil Panjang Badan Menurut Umur (PB/U)'
-                                                    : 'Hasil Tinggi Badan Menurut Umur (TB/U)'
-                                                : 'Hasil Panjang Badan Menurut Umur (PB/U)')),
+                                        title: FittedBox(
+                                          fit: BoxFit.fitWidth,
+                                          child: Text(umurBln > 24
+                                              ? 'Hasil Tinggi Badan Menurut Umur (TB/U)'
+                                              : umurBln == 24
+                                                  ? selectedPengukuran ==
+                                                          'Dikukur Terlentang'
+                                                      ? 'Hasil Panjang Badan Menurut Umur (PB/U)'
+                                                      : 'Hasil Tinggi Badan Menurut Umur (TB/U)'
+                                                  : 'Hasil Panjang Badan Menurut Umur (PB/U)'),
+                                        )),
                                   ),
                                   Visibility(
                                     visible: umurBln < 60,
@@ -334,9 +364,12 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                                         },
                                         title: FittedBox(
                                           fit: BoxFit.fitWidth,
-                                          child: Text(umurBln >= 24
-                                              ? 'Hasil Berat Badan Menurut Tinggi Badan (BB/TB)'
-                                              : 'Hasil Berat Badan Menurut Panjang Badan (BB/PB)'),
+                                          child: FittedBox(
+                                            fit: BoxFit.fitWidth,
+                                            child: Text(umurBln >= 24
+                                                ? 'Hasil Berat Badan Menurut Tinggi Badan (BB/TB)'
+                                                : 'Hasil Berat Badan Menurut Panjang Badan (BB/PB)'),
+                                          ),
                                         )),
                                   ),
                                   ListTile(
@@ -357,8 +390,11 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                                               list_imt_umur: list_imt_umur);
                                         }
                                       },
-                                      title: const Text(
-                                          'Indeks Massa Tubuh Menurut Umur (IMT/U)')),
+                                      title: const FittedBox(
+                                        fit: BoxFit.fitWidth,
+                                        child: Text(
+                                            'Indeks Massa Tubuh Menurut Umur (IMT/U)'),
+                                      )),
                                 ],
                               ),
                             ),
@@ -384,14 +420,14 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                           onPressed: () {
                             showDialog(
                               context: context,
-                              builder: (context) {
+                              builder: (contextConfirm) {
                                 return PopUpConfirm(
                                   btnConfirmText: 'Simpan',
                                   btnCancelText: 'Batal',
                                   title: 'Simpan Data Pertumbuhan',
                                   message: 'Simpan Data Pertumbuhan',
                                   onPressed: () async {
-                                    await updateDataAnak();
+                                    await updateDataAnak(contextConfirm);
                                   },
                                 );
                               },
@@ -400,7 +436,8 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                           child: Center(
                             child: Text(
                               'Simpan',
-                              style: TextStyle(fontSize: 16 * ffem,color: Colors.white),
+                              style: TextStyle(
+                                  fontSize: 16 * ffem, color: Colors.white),
                             ),
                           ),
                         )),

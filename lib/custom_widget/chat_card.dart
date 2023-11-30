@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/models/message_model.dart';
+import 'package:stunt_application/models/user.dart';
 import 'package:stunt_application/pages/Konsultasi/chat_page.dart';
 import 'package:stunt_application/utils/formatTgl.dart';
 import '../Bloc/KonsultasiBloc/konsultasiBloc.dart';
@@ -25,13 +26,14 @@ class _ChatCardState extends State<ChatCard> {
   String token = '';
   EditAkunApi editAkunApi = EditAkunApi();
   SqliteHelper sqlite = SqliteHelper();
+  User user = User();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      user = await SessionManager.getUser();
       token = await SessionManager.getToken() ?? '';
-      setState(() {});
     });
   }
 
@@ -46,8 +48,9 @@ class _ChatCardState extends State<ChatCard> {
           context,
           MaterialPageRoute(
             builder: (context) => ChatPage(
-              senderID: widget.messageModel.idsender,
-              receverID: widget.messageModel.idreceiver,
+              receverID: widget.messageModel.idreceiver == user.userID
+                  ? widget.messageModel.idsender
+                  : widget.messageModel.idreceiver,
               receiverNama: widget.messageModel.namaReceiver,
               receiverKet: widget.messageModel.ketReceiver,
               receiverFoto: widget.messageModel.fotoReceiver,
@@ -72,8 +75,9 @@ class _ChatCardState extends State<ChatCard> {
                 await sqlite.deleteConversation(
                     conversation_id:
                         widget.messageModel.conversationId.toString());
-                await context.read<KonsultasiBloc>().getLatestMesage(
-                    userID: widget.messageModel.idreceiver.toString());
+                await context
+                    .read<KonsultasiBloc>()
+                    .getLatestMesage(userID: user.userID.toString());
               },
               child: const Text('Hapus'),
             ),

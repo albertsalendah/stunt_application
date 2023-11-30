@@ -190,10 +190,11 @@ class SqliteHelper {
     return result;
   }
 
-  Future<List<MessageModel>> countUnRead() async {
+  Future<List<MessageModel>> countUnRead(String userID) async {
     final db = await database;
-    const query = 'SELECT * FROM messages WHERE messageRead != 1';
-    List<Map<String, dynamic>> count = await db.rawQuery(query);
+    const query =
+        'SELECT * FROM messages WHERE messageRead != 1 AND id_sender != ?';
+    List<Map<String, dynamic>> count = await db.rawQuery(query, [userID]);
     List<MessageModel> result = count.map((e) {
       return MessageModel(
         idmessage: e['id_message'],
@@ -220,6 +221,7 @@ class SqliteHelper {
     List<MessageModel> result = res.map((e) {
       return MessageModel(
         idmessage: e['id_message'],
+        conversationId: e['conversation_id'],
         idsender: e['id_sender'],
         idreceiver: e['id_receiver'],
         tanggalkirim: e['tanggal_kirim'],

@@ -29,12 +29,17 @@ class LoginBloc extends Cubit<LoginState> {
   }
 
   logout() async {
-    await SessionManager.logout();
-    final isLoggedIn = await SessionManager.isUserLoggedIn();
-    final isSessionExpired = await SessionManager.isSessionExpired();
-    if(navigatorKey.currentContext != null){
-      navigatorKey.currentContext?.read<SocketProviderBloc>().disconnectSocket();
-    }
-    emit(LoggedInState(isLoggedIn, isSessionExpired));
+    await SessionManager.logout().then((_) async {
+      await SessionManager.isUserLoggedIn().then((isLoggedIn) async {
+        await SessionManager.isSessionExpired().then((isSessionExpired) {
+          if (navigatorKey.currentContext != null) {
+            navigatorKey.currentContext
+                ?.read<SocketProviderBloc>()
+                .disconnectSocket();
+          }
+          emit(LoggedInState(isLoggedIn, isSessionExpired));
+        });
+      });
+    });
   }
 }

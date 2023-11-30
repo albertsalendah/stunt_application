@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:stunt_application/models/data_anak_model.dart';
+import 'package:stunt_application/utils/SessionManager.dart';
 import '../../models/api_massage.dart';
 import '../../utils/config.dart';
 
@@ -86,6 +87,7 @@ class DataAnakApi {
       required String lingkarkepala,
       required String token}) async {
     try {
+      DataAnakModel data = DataAnakModel();
       dio.options.headers['x-access-token'] = token;
       final response = await dio.post(
         '${link}insert_data_anak',
@@ -100,6 +102,10 @@ class DataAnakApi {
           "pengukuran_terakhir": DateFormat('yyyy-MM-dd').format(DateTime.now())
         },
       );
+      data = response.data != null
+          ? DataAnakModel.fromJson(response.data['dataAnak'])
+          : DataAnakModel();
+      await SessionManager.saveDataAnak(data);
       return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {
       if (error.response != null) {

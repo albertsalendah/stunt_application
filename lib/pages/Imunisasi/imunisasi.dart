@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/models/daftar_vaksin.dart';
 import 'package:stunt_application/utils/get_umur.dart';
@@ -47,6 +48,8 @@ class _ImunisasiState extends State<Imunisasi> {
   String lokasiVaksin = '';
   String tanggalVaksin = '';
   String tipeVaksin = '';
+
+  final GlobalKey<State> vaksinLoadingkey = GlobalKey<State>();
 
   @override
   void initState() {
@@ -319,39 +322,77 @@ class _ImunisasiState extends State<Imunisasi> {
                                 tipeVaksin.isNotEmpty) {
                               showDialog(
                                 context: context,
-                                builder: (context) => PopUpConfirm(
+                                builder: (contextConfirm) => PopUpConfirm(
                                   btnConfirmText: 'Simpan',
                                   btnCancelText: 'Batal',
                                   title: 'Simpan Jadwal Vaksin',
                                   message:
                                       'Simpan Jadwal Vaksin Ini? \n $tipeVaksin \n $tanggalVaksin',
                                   onPressed: () async {
-                                    API_Message result =
-                                        await api.tambahJadwalVaksin(
-                                            id_anak: dataAnak.id_anak ?? '',
-                                            userID: user.userID ?? '',
-                                            lokasi: lokasiVaksin,
-                                            tanggal_vaksin: tanggalVaksin,
-                                            tipe_vaksin: tipeVaksin,
-                                            token: token);
-                                    if (result.status) {
-                                      Navigator.pop(context);
+                                    Navigator.pop(contextConfirm);
+                                    showDialog(
+                                      context: context,
+                                      builder: (loadcontext) => PopUpLoading(
+                                        key: vaksinLoadingkey,
+                                      ),
+                                    );
+                                    try {
+                                      await api
+                                          .tambahJadwalVaksin(
+                                              id_anak: dataAnak.id_anak ?? '',
+                                              userID: user.userID ?? '',
+                                              lokasi: lokasiVaksin,
+                                              tanggal_vaksin: tanggalVaksin,
+                                              tipe_vaksin: tipeVaksin,
+                                              token: token)
+                                          .then((result) {
+                                        if (result.status) {
+                                          Navigator.of(vaksinLoadingkey
+                                                      .currentContext ??
+                                                  context)
+                                              .pop();
+                                          try {
+                                            VaksinNotification()
+                                                .scheduleVaksinNotif(
+                                                    notifID: math.Random()
+                                                        .nextInt(9000),
+                                                    tanggal: tanggalVaksin,
+                                                    title:
+                                                        'Imunisasi $tipeVaksin',
+                                                    body:
+                                                        'Imunisasi $tipeVaksin - $tanggalVaksin untuk ${dataAnak.namaanak}')
+                                                .then((_) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) =>
+                                                    PopUpSuccess(
+                                                        message:
+                                                            result.message ??
+                                                                ''),
+                                              );
+                                            });
+                                          } catch (errAlarm) {
+                                            log('Error Saat Menambah Pengingat Vaksin => $errAlarm');
+                                          }
+                                        } else {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => PopUpError(
+                                                message: result.message ?? ''),
+                                          );
+                                        }
+                                      });
+                                    } catch (error) {
+                                      log('Error Tambah Jadwal Vaksin : $error');
+                                      Navigator.of(
+                                              vaksinLoadingkey.currentContext ??
+                                                  context)
+                                          .pop();
                                       showDialog(
                                         context: context,
-                                        builder: (context) => PopUpSuccess(
-                                            message: result.message ?? ''),
-                                      );
-                                      VaksinNotification().scheduleVaksinNotif(
-                                          notifID: math.Random().nextInt(9000),
-                                          tanggal: tanggalVaksin,
-                                          title: 'Imunisasi $tipeVaksin',
-                                          body:
-                                              'Imunisasi $tipeVaksin - $tanggalVaksin untuk ${dataAnak.namaanak}');
-                                    } else {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => PopUpError(
-                                            message: result.message ?? ''),
+                                        builder: (context) => const PopUpError(
+                                            message:
+                                                'Terjadi Kesalahan Saat Menyimpan Data'),
                                       );
                                     }
                                   },

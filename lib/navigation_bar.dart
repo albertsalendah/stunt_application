@@ -50,7 +50,7 @@ class _NavigationbarState extends State<Navigationbar> {
       await fetchdata();
       Duration duration = token.isNotEmpty
           ? JwtDecoder.getRemainingTime(token)
-          : const Duration(minutes: 0);
+          : const Duration(seconds: 5);
       Configs().startSessionTimer(context, context.read<LoginBloc>(), duration);
       RemoteMessage? message =
           ModalRoute.of(context)!.settings.arguments as RemoteMessage?;

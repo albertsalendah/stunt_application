@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/utils/sqlite_helper.dart';
 
@@ -13,22 +15,26 @@ class KonsultasiBloc extends Cubit<KonsultasiState> {
   SqliteHelper sqlite = SqliteHelper();
   KonsultasiAPI konsultasiAPI = KonsultasiAPI();
 
-  getDataHealthWorker() async {
-    List<User> healthWorker = await konsultasiAPI.getListHealthWorker();
-    emit(HealthWorkerLoaded(healthWorker));
+  Future<void> getDataHealthWorker() async {
+    await konsultasiAPI.getListHealthWorker().then((list) {
+      emit(HealthWorkerLoaded(list));
+    });
   }
 
-  getLatestMesage({required String userID}) async {
-    List<MessageModel> list =
-        await konsultasiAPI.getListLatestMessage(userID: userID);
-    List<MessageModel> list2 = await sqlite.countUnRead();
-    emit(ListLatestMesasage(list, list2));
+  Future<void> getLatestMesage({required String userID}) async {
+    await sqlite.getListLatestMessage(userID: userID).then((list) async {
+      await sqlite.countUnRead(userID).then((list2) {
+        emit(ListLatestMesasage(list, list2));
+      });
+    });
   }
 
-  getIndividualMessage(
+  Future<void> getIndividualMessage(
       {required String senderID, required String receiverID}) async {
-    List<MessageModel> list = await konsultasiAPI.getIndividualMessage(
-        senderID: senderID, receiverID: receiverID);
-    emit(ListIndividualMesasage(list));
+    await sqlite
+        .getIndividualMessage(senderID: senderID, receiverID: receiverID)
+        .then((value) {
+      emit(ListIndividualMesasage(value));
+    });
   }
 }

@@ -34,8 +34,9 @@ class SocketProviderBloc extends Cubit<SocketState> {
         emit(UserDisonnected(userId));
       });
       socket?.on('typing', (data) {
+        String senderID = data['senderID'] ?? '';
         bool isTyping = data['isTyping'] ?? false;
-        emit(UserTyping(isTyping));
+        emit(UserTyping(isTyping, senderID));
       });
       socket?.on('messageReceive', (data) async {
         String messageId = data['messageId'] ?? '';
@@ -46,7 +47,8 @@ class SocketProviderBloc extends Cubit<SocketState> {
             .then((value) async {
           if (navigatorKey.currentContext != null) {
             final konsultasiBloc =
-                BlocProvider.of<KonsultasiBloc>(navigatorKey.currentContext!);
+                navigatorKey.currentContext!.read<KonsultasiBloc>();
+            //BlocProvider.of<KonsultasiBloc>(navigatorKey.currentContext!);
             await konsultasiBloc.getIndividualMessage(
                 senderID: senderID.toString(),
                 receiverID: receiverID.toString());
@@ -62,7 +64,8 @@ class SocketProviderBloc extends Cubit<SocketState> {
             .then((value) async {
           if (navigatorKey.currentContext != null) {
             final konsultasiBloc =
-                BlocProvider.of<KonsultasiBloc>(navigatorKey.currentContext!);
+                navigatorKey.currentContext!.read<KonsultasiBloc>();
+            //BlocProvider.of<KonsultasiBloc>(navigatorKey.currentContext!);
             await konsultasiBloc.getIndividualMessage(
                 senderID: senderID.toString(),
                 receiverID: receiverID.toString());
@@ -79,8 +82,12 @@ class SocketProviderBloc extends Cubit<SocketState> {
     log('Socket Disconnected');
   }
 
-  userTyping({required bool isTyping, required String receiverID}) {
-    socket?.emit('typing', {'isTyping': isTyping, 'receiverID': receiverID});
+  userTyping(
+      {required bool isTyping,
+      required String senderID,
+      required String receiverID}) {
+    socket?.emit('typing',
+        {'isTyping': isTyping, 'senderID': senderID, 'receiverID': receiverID});
   }
 
   messageReceive(

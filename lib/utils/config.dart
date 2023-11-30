@@ -15,12 +15,12 @@ class Configs {
       BuildContext context, LoginBloc loginBloc, Duration duration) async {
     try {
       Timer.periodic(duration, (timer) async {
-        timer.cancel();
         await loginBloc.logout();
-        log('SESSION => $timer');
+        log('SESSION EXPIRED');
+        timer.cancel();
       });
     } catch (e) {
-      log('ERROR : $e');
+      log('SESSION ERROR : $e');
     }
   }
 }

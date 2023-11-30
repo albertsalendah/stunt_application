@@ -1,11 +1,14 @@
 // ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stunt_application/custom_widget/list_tanggal.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
+import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/custom_widget/popup_success.dart';
 
@@ -65,6 +68,9 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
   TextEditingController minumanMeasure = TextEditingController();
 
   TextEditingController jamMakan = TextEditingController();
+
+  final GlobalKey<State> tambahMenuLoadingKey = GlobalKey<State>();
+  final GlobalKey<State> updateMenuLoadingKey = GlobalKey<State>();
 
   int selectedMenuMakan = 1;
   List<String> menu = [
@@ -194,55 +200,77 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
   addMenuMakan() {
     showDialog(
       context: context,
-      builder: (context) => PopUpConfirm(
+      builder: (contextConfirm) => PopUpConfirm(
         btnConfirmText: 'Simpan',
         btnCancelText: 'Batal',
         title: 'Tambah Menu Makan',
         message: menu[selectedMenuMakan - 1],
         onPressed: () async {
-          API_Message result = await api.addMenuMakan(
-              id_anak: dataAnak.id_anak ?? '',
-              userID: user.userID ?? '',
-              menu_makan: selectedMenuMakan,
-              tanggal: selectedDate,
-              jam_makan: jamMakan.text,
-              makan_pokok: makananPokok.text,
-              jumlah_mk: makananPokokCount.text,
-              satuan_mk: makananPokokMeasure.text,
-              sayur: sayur.text,
-              jumlah_sayur: sayurCount.text,
-              satuan_sayur: sayurMeasure.text,
-              lauk_hewani: laukHewani.text,
-              jumlah_lauk_hewani: laukHewaniCount.text,
-              satuan_lauk_hewani: laukHewaniMeasure.text,
-              lauk_nabati: laukNabati.text,
-              jumlah_lauk_nabati: laukNabatiCount.text,
-              satuan_lauk_nabati: laukNabatiMeasure.text,
-              buah: buah.text,
-              jumlah_buah: buahCount.text,
-              satuan_buah: buahMeasure.text,
-              minuman: minuman.text,
-              jumlah_minuman: minumanCount.text,
-              satuan_minuman: minumanMeasure.text,
-              token: token);
-          if (result.status) {
-            Navigator.pop(context);
-            await fetchMenuMakan(
-                user: user, token: token, tanggal: selectedDate);
-            showDialog(
-              context: context,
-              builder: (context) => PopUpSuccess(message: result.message ?? ''),
-            ).then((value) {
-              setState(() {
-                clearField();
-                setMenuMakan();
-              });
+          Navigator.pop(contextConfirm);
+          showDialog(
+            context: context,
+            builder: (loadcontext) => PopUpLoading(
+              key: tambahMenuLoadingKey,
+            ),
+          );
+          try {
+            await api
+                .addMenuMakan(
+                    id_anak: dataAnak.id_anak ?? '',
+                    userID: user.userID ?? '',
+                    menu_makan: selectedMenuMakan,
+                    tanggal: selectedDate,
+                    jam_makan: jamMakan.text,
+                    makan_pokok: makananPokok.text,
+                    jumlah_mk: makananPokokCount.text,
+                    satuan_mk: makananPokokMeasure.text,
+                    sayur: sayur.text,
+                    jumlah_sayur: sayurCount.text,
+                    satuan_sayur: sayurMeasure.text,
+                    lauk_hewani: laukHewani.text,
+                    jumlah_lauk_hewani: laukHewaniCount.text,
+                    satuan_lauk_hewani: laukHewaniMeasure.text,
+                    lauk_nabati: laukNabati.text,
+                    jumlah_lauk_nabati: laukNabatiCount.text,
+                    satuan_lauk_nabati: laukNabatiMeasure.text,
+                    buah: buah.text,
+                    jumlah_buah: buahCount.text,
+                    satuan_buah: buahMeasure.text,
+                    minuman: minuman.text,
+                    jumlah_minuman: minumanCount.text,
+                    satuan_minuman: minumanMeasure.text,
+                    token: token)
+                .then((result) async {
+              Navigator.of(tambahMenuLoadingKey.currentContext ?? context)
+                  .pop();
+              if (result.status) {
+                await fetchMenuMakan(
+                    user: user, token: token, tanggal: selectedDate);
+                showDialog(
+                  context: context,
+                  builder: (context) =>
+                      PopUpSuccess(message: result.message ?? ''),
+                ).then((value) {
+                  setState(() {
+                    clearField();
+                    setMenuMakan();
+                  });
+                });
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (context) =>
+                      PopUpError(message: result.message ?? ''),
+                );
+              }
             });
-          } else {
-            Navigator.pop(context);
+          } catch (err) {
+            log('Error Tambah Menagemen Gizi -> $err');
+            Navigator.of(tambahMenuLoadingKey.currentContext ?? context).pop();
             showDialog(
               context: context,
-              builder: (context) => PopUpError(message: result.message ?? ''),
+              builder: (context) => const PopUpError(
+                  message: 'Terjadi Kesalahan Saat Menambahkan Data'),
             );
           }
         },
@@ -253,61 +281,86 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
   updateMenuMakan() {
     showDialog(
       context: context,
-      builder: (context) => PopUpConfirm(
+      builder: (contextConfirm) => PopUpConfirm(
         btnConfirmText: 'Simpan',
         btnCancelText: 'Batal',
         title: 'Ubah Menu Manakn',
         message: 'Ubah ${menu[selectedMenuMakan - 1]}',
         onPressed: () async {
-          API_Message result = await api.updateMenuMakan(
-            id_menu: menuMakan.idmenu ?? '',
-            jam_makan: jamMakan.text,
-            makan_pokok: makananPokok.text,
-            jumlah_mk: makananPokokCount.text,
-            satuan_mk: makananPokokMeasure.text,
-            sayur: sayur.text,
-            jumlah_sayur: sayurCount.text,
-            satuan_sayur: sayurMeasure.text,
-            lauk_hewani: laukHewani.text,
-            jumlah_lauk_hewani: laukHewaniCount.text,
-            satuan_lauk_hewani: laukHewaniMeasure.text,
-            lauk_nabati: laukNabati.text,
-            jumlah_lauk_nabati: laukNabatiCount.text,
-            satuan_lauk_nabati: laukNabatiMeasure.text,
-            buah: buah.text,
-            jumlah_buah: buahCount.text,
-            satuan_buah: buahMeasure.text,
-            minuman: minuman.text,
-            jumlah_minuman: minumanCount.text,
-            satuan_minuman: minumanMeasure.text,
-            token: token,
-          );
-          if (result.status) {
-            Navigator.pop(context);
-            await fetchMenuMakan(
-                user: user, token: token, tanggal: selectedDate);
-            showDialog(
-              context: context,
-              builder: (context) => PopUpSuccess(message: result.message ?? ''),
-            ).then((value) {
-              menuMakan = listMenuMakan.firstWhere(
-                (element) {
-                  return formatTglMenu(element.tanggal.toString()) ==
-                          selectedDate &&
-                      element.menumakan == selectedMenuMakan;
-                },
-                orElse: () => MenuMakanModel(),
+          Navigator.pop(contextConfirm);
+          showDialog(
+            context: context,
+            builder: (contextLoading) {
+              return PopUpLoading(
+                key: updateMenuLoadingKey,
               );
-              setState(() {
-                clearField();
-                setMenuMakan();
-              });
+            },
+          );
+          try {
+            await api
+                .updateMenuMakan(
+                    id_menu: menuMakan.idmenu ?? '',
+                    jam_makan: jamMakan.text,
+                    makan_pokok: makananPokok.text,
+                    jumlah_mk: makananPokokCount.text,
+                    satuan_mk: makananPokokMeasure.text,
+                    sayur: sayur.text,
+                    jumlah_sayur: sayurCount.text,
+                    satuan_sayur: sayurMeasure.text,
+                    lauk_hewani: laukHewani.text,
+                    jumlah_lauk_hewani: laukHewaniCount.text,
+                    satuan_lauk_hewani: laukHewaniMeasure.text,
+                    lauk_nabati: laukNabati.text,
+                    jumlah_lauk_nabati: laukNabatiCount.text,
+                    satuan_lauk_nabati: laukNabatiMeasure.text,
+                    buah: buah.text,
+                    jumlah_buah: buahCount.text,
+                    satuan_buah: buahMeasure.text,
+                    minuman: minuman.text,
+                    jumlah_minuman: minumanCount.text,
+                    satuan_minuman: minumanMeasure.text,
+                    token: token)
+                .then((value) async {
+              Navigator.of(updateMenuLoadingKey.currentContext ?? context)
+                  .pop();
+              if (value.status) {
+                await fetchMenuMakan(
+                        user: user, token: token, tanggal: selectedDate)
+                    .then((_) {
+                  showDialog(
+                    context: context,
+                    builder: (context) =>
+                        PopUpSuccess(message: value.message ?? ''),
+                  ).then((_) {
+                    menuMakan = listMenuMakan.firstWhere(
+                      (element) {
+                        return formatTglMenu(element.tanggal.toString()) ==
+                                selectedDate &&
+                            element.menumakan == selectedMenuMakan;
+                      },
+                      orElse: () => MenuMakanModel(),
+                    );
+                    setState(() {
+                      clearField();
+                      setMenuMakan();
+                    });
+                  });
+                });
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (context) =>
+                      PopUpError(message: value.message ?? ''),
+                );
+              }
             });
-          } else {
-            Navigator.pop(context);
+          } catch (error) {
+            log('Error Update Menagemen Gizi -> $error');
+            Navigator.of(updateMenuLoadingKey.currentContext ?? context).pop();
             showDialog(
               context: context,
-              builder: (context) => PopUpError(message: result.message ?? ''),
+              builder: (context) => const PopUpError(
+                  message: 'Terjadi Kesalahan Saat Mengubah Data'),
             );
           }
         },
@@ -317,7 +370,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
 
   //hapus .add(const Duration(days: 1)) saat deploy
   String formatTglMenu(String tgl) {
-    DateTime parsedDate = DateTime.parse(tgl);
+    DateTime parsedDate = DateTime.parse(tgl).add(const Duration(days: 1));
     return DateFormat('yyyy-MM-dd').format(parsedDate).toString();
   }
 
@@ -398,7 +451,9 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                 padding: const EdgeInsets.all(8.0),
                 child: Column(children: [
                   ListTanggal(
-                    onDateSelected: (date) {
+                    onDateSelected: (date) async {
+                      await fetchMenuMakan(
+                          user: user, token: token, tanggal: selectedDate);
                       setState(() {
                         selectedDate = DateFormat('yyyy-MM-dd').format(date);
                         menuMakan = listMenuMakan.firstWhere(
@@ -418,194 +473,206 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                     height: 16,
                   ),
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom / 2),
-                      reverse: false,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: DropdownMenu<String>(
-                              width: MediaQuery.of(context).size.width - 17,
-                              inputDecorationTheme: InputDecorationTheme(
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10))),
-                              onSelected: (String? value) {
-                                if (value != null) {
-                                  selectedMenuMakan = menu.indexOf(value) + 1;
-                                }
-                                menuMakan = listMenuMakan.firstWhere(
-                                  (element) {
-                                    return element.menumakan ==
-                                            selectedMenuMakan &&
-                                        selectedDate ==
-                                            formatTglMenu(
-                                                element.tanggal.toString());
-                                  },
-                                  orElse: () => MenuMakanModel(),
-                                );
-                                clearField();
-                                setMenuMakan();
-                                setState(() {});
-                              },
-                              initialSelection: menu.first,
-                              dropdownMenuEntries: menu
-                                  .map<DropdownMenuEntry<String>>(
-                                      (String value) {
-                                return DropdownMenuEntry<String>(
-                                    value: value, label: value);
-                              }).toList(),
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        await fetchMenuMakan(
+                            user: user, token: token, tanggal: selectedDate);
+                        setState(() {
+                          clearField();
+                          setMenuMakan();
+                        });
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.only(
+                            bottom:
+                                MediaQuery.of(context).viewInsets.bottom / 2),
+                        reverse: false,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: DropdownMenu<String>(
+                                width: MediaQuery.of(context).size.width - 17,
+                                inputDecorationTheme: InputDecorationTheme(
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10))),
+                                onSelected: (String? value) {
+                                  if (value != null) {
+                                    selectedMenuMakan = menu.indexOf(value) + 1;
+                                  }
+                                  menuMakan = listMenuMakan.firstWhere(
+                                    (element) {
+                                      return element.menumakan ==
+                                              selectedMenuMakan &&
+                                          selectedDate ==
+                                              formatTglMenu(
+                                                  element.tanggal.toString());
+                                    },
+                                    orElse: () => MenuMakanModel(),
+                                  );
+                                  clearField();
+                                  setMenuMakan();
+                                  setState(() {});
+                                },
+                                initialSelection: menu.first,
+                                dropdownMenuEntries: menu
+                                    .map<DropdownMenuEntry<String>>(
+                                        (String value) {
+                                  return DropdownMenuEntry<String>(
+                                      value: value, label: value);
+                                }).toList(),
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          listRekomendasiMenu(context),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          jamMakanPicker(),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[0],
-                            focusNode: focusNodes[0],
-                            onFocusChange: (hasFocus) {
-                              if (hasFocus) {
-                                autoScroll(keys[0]);
-                              }
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Makanan Pokok',
-                                hint: 'Nasi',
-                                hintM: listSatuanMakan[5],
-                                list: listSatuanMakan,
-                                mainController: makananPokok,
-                                countController: makananPokokCount,
-                                measurementController: makananPokokMeasure,
-                                onEditingComplete: () {
-                                  focusNodes[1].requestFocus();
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[1],
-                            focusNode: focusNodes[1],
-                            onFocusChange: (hasFocus) {
-                              if (hasFocus) {
-                                autoScroll(keys[1]);
-                              }
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Sayur',
-                                hint: 'Bayam',
-                                hintM: listSatuanMakan[4],
-                                list: listSatuanMakan,
-                                mainController: sayur,
-                                countController: sayurCount,
-                                measurementController: sayurMeasure,
-                                onEditingComplete: () {
-                                  focusNodes[2].requestFocus();
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[2],
-                            focusNode: focusNodes[2],
-                            onFocusChange: (hasFocus) {
-                              if (hasFocus) {
-                                autoScroll(keys[2]);
-                              }
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Lauk Hewani',
-                                hint: 'Ikan',
-                                hintM: listSatuanMakan[3],
-                                list: listSatuanMakan,
-                                mainController: laukHewani,
-                                countController: laukHewaniCount,
-                                measurementController: laukHewaniMeasure,
-                                onEditingComplete: () {
-                                  focusNodes[3].requestFocus();
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[3],
-                            focusNode: focusNodes[3],
-                            onFocusChange: (hasFocus) {
-                              if (hasFocus) {
-                                autoScroll(keys[3]);
-                              }
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Lauk Nabati',
-                                hint: 'Tahu',
-                                hintM: listSatuanMakan[3],
-                                list: listSatuanMakan,
-                                mainController: laukNabati,
-                                countController: laukNabatiCount,
-                                measurementController: laukNabatiMeasure,
-                                onEditingComplete: () {
-                                  focusNodes[4].requestFocus();
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[4],
-                            focusNode: focusNodes[4],
-                            onFocusChange: (hasFocus) {
-                              autoScroll(keys[4]);
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Buah',
-                                hint: 'Apel',
-                                hintM: listSatuanMakan[6],
-                                list: listSatuanMakan,
-                                mainController: buah,
-                                countController: buahCount,
-                                measurementController: buahMeasure,
-                                onEditingComplete: () {
-                                  focusNodes[5].requestFocus();
-                                }),
-                          ),
-                          const SizedBox(
-                            height: 16,
-                          ),
-                          Focus(
-                            key: keys[5],
-                            focusNode: focusNodes[5],
-                            onFocusChange: (hasFocus) {
-                              autoScroll(keys[5]);
-                            },
-                            child: MenajemenGiziField(
-                                label: 'Minuman',
-                                hint: 'Susu',
-                                hintM: listSatuanMinuman[0],
-                                list: listSatuanMinuman,
-                                mainController: minuman,
-                                countController: minumanCount,
-                                measurementController: minumanMeasure,
-                                onEditingComplete: () {}),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom /
-                                        3),
-                          )
-                        ],
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            listRekomendasiMenu(context),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            jamMakanPicker(),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[0],
+                              focusNode: focusNodes[0],
+                              onFocusChange: (hasFocus) {
+                                if (hasFocus) {
+                                  autoScroll(keys[0]);
+                                }
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Makanan Pokok',
+                                  hint: 'Nasi',
+                                  hintM: listSatuanMakan[5],
+                                  list: listSatuanMakan,
+                                  mainController: makananPokok,
+                                  countController: makananPokokCount,
+                                  measurementController: makananPokokMeasure,
+                                  onEditingComplete: () {
+                                    focusNodes[1].requestFocus();
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[1],
+                              focusNode: focusNodes[1],
+                              onFocusChange: (hasFocus) {
+                                if (hasFocus) {
+                                  autoScroll(keys[1]);
+                                }
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Sayur',
+                                  hint: 'Bayam',
+                                  hintM: listSatuanMakan[4],
+                                  list: listSatuanMakan,
+                                  mainController: sayur,
+                                  countController: sayurCount,
+                                  measurementController: sayurMeasure,
+                                  onEditingComplete: () {
+                                    focusNodes[2].requestFocus();
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[2],
+                              focusNode: focusNodes[2],
+                              onFocusChange: (hasFocus) {
+                                if (hasFocus) {
+                                  autoScroll(keys[2]);
+                                }
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Lauk Hewani',
+                                  hint: 'Ikan',
+                                  hintM: listSatuanMakan[3],
+                                  list: listSatuanMakan,
+                                  mainController: laukHewani,
+                                  countController: laukHewaniCount,
+                                  measurementController: laukHewaniMeasure,
+                                  onEditingComplete: () {
+                                    focusNodes[3].requestFocus();
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[3],
+                              focusNode: focusNodes[3],
+                              onFocusChange: (hasFocus) {
+                                if (hasFocus) {
+                                  autoScroll(keys[3]);
+                                }
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Lauk Nabati',
+                                  hint: 'Tahu',
+                                  hintM: listSatuanMakan[3],
+                                  list: listSatuanMakan,
+                                  mainController: laukNabati,
+                                  countController: laukNabatiCount,
+                                  measurementController: laukNabatiMeasure,
+                                  onEditingComplete: () {
+                                    focusNodes[4].requestFocus();
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[4],
+                              focusNode: focusNodes[4],
+                              onFocusChange: (hasFocus) {
+                                autoScroll(keys[4]);
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Buah',
+                                  hint: 'Apel',
+                                  hintM: listSatuanMakan[6],
+                                  list: listSatuanMakan,
+                                  mainController: buah,
+                                  countController: buahCount,
+                                  measurementController: buahMeasure,
+                                  onEditingComplete: () {
+                                    focusNodes[5].requestFocus();
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 16,
+                            ),
+                            Focus(
+                              key: keys[5],
+                              focusNode: focusNodes[5],
+                              onFocusChange: (hasFocus) {
+                                autoScroll(keys[5]);
+                              },
+                              child: MenajemenGiziField(
+                                  label: 'Minuman',
+                                  hint: 'Susu',
+                                  hintM: listSatuanMinuman[0],
+                                  list: listSatuanMinuman,
+                                  mainController: minuman,
+                                  countController: minumanCount,
+                                  measurementController: minumanMeasure,
+                                  onEditingComplete: () {}),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom /
+                                          3),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -657,176 +724,174 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
           ),
           backgroundColor: Colors.white,
           builder: (BuildContext context) {
-            return SizedBox(
-              height: 500,
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                                child: Text(
-                              menu[selectedMenuMakan - 1],
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            )),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: IconButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  icon: const Icon(Icons.close)),
-                            )
-                          ],
-                        )),
+            return Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  SizedBox(
-                    height: 268,
-                    child: ListView(
-                      padding: const EdgeInsets.only(left: 8, right: 8),
-                      shrinkWrap: true,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title:
-                                Text(rekomendasiMenu.makananpokok.toString()),
+                        Expanded(
+                            child: Text(
+                          menu[selectedMenuMakan - 1],
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        )),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.close),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title: Text(rekomendasiMenu.sayur.toString()),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title: Text(rekomendasiMenu.laukhewani.toString()),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title: Text(rekomendasiMenu.lauknabati.toString()),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title: Text(rekomendasiMenu.buah.toString()),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: ListTile(
-                            tileColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              side: const BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            title: Text(rekomendasiMenu.minuman.toString()),
-                          ),
-                        ),
+                        )
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 8,
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.only(left: 8, right: 8),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(
+                            rekomendasiMenu.makananpokok.toString(),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(rekomendasiMenu.sayur.toString()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(rekomendasiMenu.laukhewani.toString()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(rekomendasiMenu.lauknabati.toString()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(rekomendasiMenu.buah.toString()),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4, bottom: 4),
+                        child: ListTile(
+                          tileColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: const BorderSide(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          title: Text(rekomendasiMenu.minuman.toString()),
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    height: 60,
-                    width: MediaQuery.of(context).size.width,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 8, right: 8, top: 5, bottom: 5),
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              backgroundColor: const Color(0xff3f7af6)),
-                          onPressed: () {
-                            setState(() {
-                              jamMakan.text =
-                                  rekomendasiMenu.jammakan.toString();
-                              makananPokok.text =
-                                  rekomendasiMenu.makananpokok.toString();
-                              makananPokokCount.text =
-                                  rekomendasiMenu.jumlahmk.toString();
-                              makananPokokMeasure.text =
-                                  rekomendasiMenu.satuanmk.toString();
-                              sayur.text = rekomendasiMenu.sayur.toString();
-                              sayurCount.text =
-                                  rekomendasiMenu.jumlahsayur.toString();
-                              sayurMeasure.text =
-                                  rekomendasiMenu.satuansayur.toString();
-                              laukHewani.text =
-                                  rekomendasiMenu.laukhewani.toString();
-                              laukHewaniCount.text =
-                                  rekomendasiMenu.jumlahlaukhewani.toString();
-                              laukHewaniMeasure.text =
-                                  rekomendasiMenu.satuanlaukhewani.toString();
-                              laukNabati.text =
-                                  rekomendasiMenu.lauknabati.toString();
-                              laukNabatiCount.text =
-                                  rekomendasiMenu.jumlahlauknabati.toString();
-                              laukNabatiMeasure.text =
-                                  rekomendasiMenu.satuanlauknabati.toString();
-                              buah.text = rekomendasiMenu.buah.toString();
-                              buahCount.text =
-                                  rekomendasiMenu.jumlahbuah.toString();
-                              buahMeasure.text =
-                                  rekomendasiMenu.satuanbuah.toString();
-                              minuman.text = rekomendasiMenu.minuman.toString();
-                              minumanCount.text =
-                                  rekomendasiMenu.jumlahminuman.toString();
-                              minumanMeasure.text =
-                                  rekomendasiMenu.satuanminuman.toString();
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            'Simpan',
-                            style: TextStyle(color: Colors.white),
-                          )),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Container(
+                  height: 60,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 8, right: 8, top: 5, bottom: 5),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          backgroundColor: const Color(0xff3f7af6)),
+                      onPressed: () {
+                        setState(() {
+                          jamMakan.text = rekomendasiMenu.jammakan.toString();
+                          makananPokok.text =
+                              rekomendasiMenu.makananpokok.toString();
+                          makananPokokCount.text =
+                              rekomendasiMenu.jumlahmk.toString();
+                          makananPokokMeasure.text =
+                              rekomendasiMenu.satuanmk.toString();
+                          sayur.text = rekomendasiMenu.sayur.toString();
+                          sayurCount.text =
+                              rekomendasiMenu.jumlahsayur.toString();
+                          sayurMeasure.text =
+                              rekomendasiMenu.satuansayur.toString();
+                          laukHewani.text =
+                              rekomendasiMenu.laukhewani.toString();
+                          laukHewaniCount.text =
+                              rekomendasiMenu.jumlahlaukhewani.toString();
+                          laukHewaniMeasure.text =
+                              rekomendasiMenu.satuanlaukhewani.toString();
+                          laukNabati.text =
+                              rekomendasiMenu.lauknabati.toString();
+                          laukNabatiCount.text =
+                              rekomendasiMenu.jumlahlauknabati.toString();
+                          laukNabatiMeasure.text =
+                              rekomendasiMenu.satuanlauknabati.toString();
+                          buah.text = rekomendasiMenu.buah.toString();
+                          buahCount.text =
+                              rekomendasiMenu.jumlahbuah.toString();
+                          buahMeasure.text =
+                              rekomendasiMenu.satuanbuah.toString();
+                          minuman.text = rekomendasiMenu.minuman.toString();
+                          minumanCount.text =
+                              rekomendasiMenu.jumlahminuman.toString();
+                          minumanMeasure.text =
+                              rekomendasiMenu.satuanminuman.toString();
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Simpan',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             );
           },
         );
@@ -903,27 +968,27 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Expanded(
-                                    child: Text(
-                                  'Pilih Jam Pengingat',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                )),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      icon: const Icon(Icons.close)),
-                                )
-                              ],
-                            )),
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Expanded(
+                                  child: Text(
+                                'Pilih Jam Pengingat',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              )),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: IconButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    icon: const Icon(Icons.close)),
+                              )
+                            ],
+                          ),
+                        ),
                       ),
                       SizedBox(
                         height: 230,

@@ -23,7 +23,7 @@ import '../../utils/SessionManager.dart';
 import 'konsultasi_api.dart';
 
 class ChatPage extends StatefulWidget {
-  final senderID;
+  //final senderID;
   final receverID;
   final receiverNama;
   final receiverKet;
@@ -31,7 +31,7 @@ class ChatPage extends StatefulWidget {
   final receiverFCM;
   const ChatPage(
       {super.key,
-      required this.senderID,
+      //required this.senderID,
       required this.receverID,
       required this.receiverNama,
       required this.receiverKet,
@@ -42,7 +42,7 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   KonsultasiAPI api = KonsultasiAPI();
   final TextEditingController messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -59,9 +59,15 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     socketBloc = context.read<SocketProviderBloc>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await SessionManager.getUser();
+      String currentPage = await SessionManager.getCurrentPage() ?? '';
+      if (currentPage.isNotEmpty) {
+        await SessionManager.removeCurrentPage();
+      }
+      await SessionManager.saveCurrentPage(widget.receverID);
       await fetchData();
       if (listMessage.isEmpty) {
         await fetchData();
@@ -77,15 +83,45 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.inactive:
+        log('CHAT PAGE INACTIVE');
+        break;
+      case AppLifecycleState.resumed:
+        fetchData();
+        log('CHAT PAGE RESUMED');
+        break;
+      case AppLifecycleState.paused:
+        log('CHAT PAGE PAUSED');
+        break;
+      case AppLifecycleState.detached:
+        log('CHAT PAGE DETACHED');
+        break;
+      case AppLifecycleState.hidden:
+        log('CHAT PAGE HIDDEN');
+        break;
+    }
+  }
+
+  @override
   void dispose() {
     super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
   }
 
   startTimer() {
-    socketBloc.userTyping(isTyping: true, receiverID: widget.receverID);
+    socketBloc.userTyping(
+        isTyping: true,
+        senderID: user.userID.toString(),
+        receiverID: widget.receverID);
     _checkTypingTimer = Timer(const Duration(milliseconds: 600), () {
-      socketBloc.userTyping(isTyping: false, receiverID: widget.receverID);
+      socketBloc.userTyping(
+          isTyping: false,
+          senderID: user.userID.toString(),
+          receiverID: widget.receverID);
     });
   }
 
@@ -96,16 +132,12 @@ class _ChatPageState extends State<ChatPage> {
 
   void onEmojiSelected(Emoji emoji) {
     messageController.text = messageController.text + emoji.emoji;
-    //setState(() {});
   }
 
   Future<void> fetchData() async {
     await context.read<KonsultasiBloc>().getIndividualMessage(
-        senderID: user.userID.toString(),
-        receiverID: user.userID.toString() != widget.receverID
-            ? widget.receverID.toString()
-            : widget.senderID);
-    await context
+        senderID: user.userID.toString(), receiverID: widget.receverID);
+    context
         .read<KonsultasiBloc>()
         .getLatestMesage(userID: user.userID.toString());
   }
@@ -142,6 +174,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void messageRead(List<MessageModel> unReadMessageList) async {
+    int count = unReadMessageList.length;
     for (var item in unReadMessageList) {
       socketBloc.messageRead(
           messageId: item.idmessage.toString(),
@@ -149,6 +182,12 @@ class _ChatPageState extends State<ChatPage> {
           receiverID: item.idsender.toString());
       await sqlite.updateStatusChat(
           messageRead: 1, id_message: item.idmessage.toString());
+      count--;
+    }
+    if (count == 0) {
+      context
+          .read<KonsultasiBloc>()
+          .getLatestMesage(userID: user.userID.toString());
     }
   }
 
@@ -229,7 +268,9 @@ class _ChatPageState extends State<ChatPage> {
                     DateTime dateTimeB = DateTime.parse('${b.tanggalkirim}');
                     return dateTimeA.compareTo(dateTimeB);
                   });
-                  messageRead(unReadMessageList);
+                  if (unReadMessageList.isNotEmpty) {
+                    messageRead(unReadMessageList);
+                  }
                 }
               }
               return Expanded(
@@ -352,10 +393,7 @@ class _ChatPageState extends State<ChatPage> {
                           await api
                               .sendMessage(
                                   id_sender: user.userID.toString(),
-                                  id_receiver:
-                                      user.userID.toString() != widget.receverID
-                                          ? widget.receverID.toString()
-                                          : widget.senderID,
+                                  id_receiver: widget.receverID,
                                   message: messageController.text,
                                   image: foto,
                                   fcm_token: widget.receiverFCM.toString(),
@@ -475,7 +513,9 @@ class _ChatPageState extends State<ChatPage> {
                               isOnline = false;
                             }
                           } else if (state is UserTyping) {
-                            isTyping = state.isTyping;
+                            if (widget.receverID == state.senderID) {
+                              isTyping = state.isTyping;
+                            }
                           }
                           return Visibility(
                             visible: !isTyping,
@@ -547,7 +587,7 @@ class _ChatPageState extends State<ChatPage> {
           borderRadius: BorderRadius.circular(8 * fem),
         ),
         child: IconButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
             },
             icon: Icon(
