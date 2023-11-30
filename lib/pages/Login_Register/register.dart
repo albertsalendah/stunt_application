@@ -495,7 +495,7 @@ class _RegisterState extends State<Register> {
                           noHp: no_wa.text,
                           email: email.text,
                           password: pass.text,
-                          foto: foto,
+                          foto: imagebytes,
                           fcm_token: '');
                       Navigator.pop(conLoading);
                       if (result.status) {

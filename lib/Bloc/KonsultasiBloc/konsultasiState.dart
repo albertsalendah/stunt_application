@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:stunt_application/models/contact_model.dart';
 
 import '../../models/message_model.dart';
 import '../../models/user.dart';
@@ -13,7 +14,7 @@ abstract class KonsultasiState extends Equatable {
 class DataInitialState extends KonsultasiState {}
 
 class HealthWorkerLoaded extends KonsultasiState {
-  final List<User> healthWorker;
+  final List<Contact> healthWorker;
 
   const HealthWorkerLoaded(this.healthWorker);
 

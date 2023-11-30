@@ -1,10 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/utils/sqlite_helper.dart';
-
-import '../../models/message_model.dart';
-import '../../models/user.dart';
 import '../../pages/Konsultasi/konsultasi_api.dart';
 import '../../utils/config.dart';
 import 'konsultasiState.dart';
@@ -16,8 +11,12 @@ class KonsultasiBloc extends Cubit<KonsultasiState> {
   KonsultasiAPI konsultasiAPI = KonsultasiAPI();
 
   Future<void> getDataHealthWorker() async {
-    await konsultasiAPI.getListHealthWorker().then((list) {
-      emit(HealthWorkerLoaded(list));
+    await konsultasiAPI.getListHealthWorker().then((list) async {
+      await sqlite.addNewContacts(list).then((_) async {
+        await sqlite.getAllcontact().then((listcontact) {
+          emit(HealthWorkerLoaded(listcontact));
+        });
+      });
     });
   }
 

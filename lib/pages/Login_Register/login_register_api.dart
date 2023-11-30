@@ -1,5 +1,6 @@
 // ignore_for_file: camel_case_types, non_constant_identifier_names
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:stunt_application/models/user.dart';
@@ -19,13 +20,8 @@ class Login_Register_Api {
     required String password,
   }) async {
     try {
-      final response = await dio.post(
-        '${link}login',
-        data: {'no_hp': noHp, 'password': password, 'health_worker': false},
-        // options: Options(validateStatus: (status) {
-        //   return status! < 500;
-        // }),
-      );
+      final response = await dio.post('${link}login',
+          data: {'no_hp': noHp, 'password': password, 'health_worker': false});
       dynamic token = response.data['token'];
       User user = User.fromJson(response.data['user']);
       String? fcm_token = await FirebaseApi().getTokenFCM();
@@ -57,20 +53,23 @@ class Login_Register_Api {
       required String email,
       required String password,
       String? fcm_token,
-      String? foto}) async {
+      Uint8List? foto}) async {
     try {
+      FormData formData = FormData.fromMap({
+        'nama': nama,
+        'no_hp': noHp,
+        'email': email,
+        'password': password,
+        'fcm_token': fcm_token,
+        'keterangan': '',
+        'health_worker': false,
+        'foto': foto != null
+            ? MultipartFile.fromBytes(foto, filename: '$nama.jpg')
+            : null,
+      });
       final response = await dio.post(
         '${link}register',
-        data: {
-          'nama': nama,
-          'no_hp': noHp,
-          'email': email,
-          'password': password,
-          'fcm_token': fcm_token,
-          'foto': foto,
-          'keterangan': '',
-          'health_worker': false
-        },
+        data: formData,
       );
       return API_Message(status: true, message: response.data['message']);
     } on DioException catch (error) {

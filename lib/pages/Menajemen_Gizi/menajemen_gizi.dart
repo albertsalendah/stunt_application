@@ -1,21 +1,18 @@
 // ignore_for_file: use_build_context_synchronously, non_constant_identifier_names
 
 import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stunt_application/custom_widget/backbutton.dart';
 import 'package:stunt_application/custom_widget/list_tanggal.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
 import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/custom_widget/popup_success.dart';
-
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../navigation_bar.dart';
-import '../../models/api_massage.dart';
 import '../../models/data_anak_model.dart';
 import '../../models/menu_makan_model.dart';
 import '../../models/rekomendasiMenu.dart';
@@ -387,17 +384,18 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              iconTheme: const IconThemeData(color: Colors.grey),
-              title: Text(
-                'Menajemen Gizi',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16 * fem,
-                    color: Colors.black),
-              ),
-              leading: backbutton(fem, context)),
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: Colors.grey),
+            title: Text(
+              'Menajemen Gizi',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16 * fem,
+                  color: Colors.black),
+            ),
+            leading: CustomBackButton(fem: fem),
+          ),
           backgroundColor: Colors.white,
           body: BlocBuilder<AllBloc, AllState>(
             builder: (context, state) {
@@ -1021,39 +1019,6 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
           },
         ),
       ],
-    );
-  }
-
-  Padding backbutton(double fem, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(8.0 * fem),
-      child: Container(
-        height: 20 * fem,
-        width: 20 * fem,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffe2e2e2)),
-          color: const Color(0xffffffff),
-          borderRadius: BorderRadius.circular(8 * fem),
-        ),
-        child: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const Navigationbar(
-                  index: 0,
-                ),
-              ),
-            );
-          },
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.grey,
-            size: 16 * fem,
-          ),
-        ),
-      ),
     );
   }
 }

@@ -8,6 +8,7 @@ import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/pages/Akun/updateFotoPopUp.dart';
 import 'package:stunt_application/models/api_massage.dart';
 import 'package:stunt_application/pages/Akun/edit_akun.dart';
+import 'package:stunt_application/utils/config.dart';
 
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
@@ -26,6 +27,7 @@ class Akun extends StatefulWidget {
 }
 
 class _AkunState extends State<Akun> {
+  static const String link = Configs.LINK;
   User user = User();
   String token = '';
   EditAkunApi api = EditAkunApi();
@@ -416,38 +418,39 @@ class _AkunState extends State<Akun> {
                 });
               },
               child: Container(
-                  margin:
-                      EdgeInsets.fromLTRB(0 * fem, 0 * fem, 12 * fem, 0 * fem),
-                  padding: EdgeInsets.only(left: 8 * fem),
-                  width: 65 * fem,
-                  height: 65 * fem,
-                  child: CircleAvatar(
-                    radius: 65.0,
-                    backgroundImage: user.foto != null && user.foto!.isNotEmpty
-                        ? MemoryImage(base64Decode(user.foto.toString()))
-                            as ImageProvider
-                        : const AssetImage('assets/images/group-115.png'),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        width: 65,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(200),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(65),
-                            bottomRight: Radius.circular(65),
-                          ),
+                margin:
+                    EdgeInsets.fromLTRB(0 * fem, 0 * fem, 12 * fem, 0 * fem),
+                padding: EdgeInsets.only(left: 8 * fem),
+                width: 65 * fem,
+                height: 65 * fem,
+                child: CircleAvatar(
+                  radius: 65.0,
+                  backgroundImage: user.foto != null && user.foto!.isNotEmpty
+                      ? NetworkImage(link + user.foto.toString(),
+                          headers: {'x-access-token': token}) as ImageProvider
+                      : const AssetImage('assets/images/group-115.png'),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: 65,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(200),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(65),
+                          bottomRight: Radius.circular(65),
                         ),
-                        child: const Align(
-                            alignment: Alignment.topCenter,
-                            child: Text(
-                              'Ubah',
-                              style: TextStyle(color: Colors.black),
-                            )),
                       ),
+                      child: const Align(
+                          alignment: Alignment.topCenter,
+                          child: Text(
+                            'Ubah',
+                            style: TextStyle(color: Colors.black),
+                          )),
                     ),
-                  )),
+                  ),
+                ),
+              ),
             ),
             Container(
               margin: EdgeInsets.fromLTRB(0 * fem, 14 * fem, 0 * fem, 14 * fem),

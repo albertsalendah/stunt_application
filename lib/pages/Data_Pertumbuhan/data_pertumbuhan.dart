@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stunt_application/custom_widget/backbutton.dart';
 import 'package:stunt_application/custom_widget/popUpConfirm.dart';
 import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import '../../Bloc/AllBloc/all_bloc.dart';
@@ -178,7 +179,7 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                       fontSize: 16 * fem,
                       color: Colors.black),
                 ),
-                leading: backbutton(fem, context)),
+                leading: CustomBackButton(fem: fem),),
             backgroundColor: Colors.white,
             body: BlocBuilder<AllBloc, AllState>(
               builder: (context, state) {
@@ -474,37 +475,6 @@ class _DataPertumbuhanState extends State<DataPertumbuhan> {
                 : null,
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(8))));
-  }
-
-  Padding backbutton(double fem, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(8.0 * fem),
-      child: Container(
-        height: 20 * fem,
-        width: 20 * fem,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffe2e2e2)),
-          color: const Color(0xffffffff),
-          borderRadius: BorderRadius.circular(8 * fem),
-        ),
-        child: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const Navigationbar(
-                          index: 0,
-                        )),
-              );
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.grey,
-              size: 16 * fem,
-            )),
-      ),
-    );
   }
 
   Container data_anak(double fem, double ffem) {

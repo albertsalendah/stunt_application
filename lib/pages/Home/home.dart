@@ -1,6 +1,4 @@
 // ignore_for_file: non_constant_identifier_names, use_build_context_synchronously
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';

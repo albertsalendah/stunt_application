@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,8 +12,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mime/mime.dart';
 import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
+import 'package:stunt_application/custom_widget/backbutton.dart';
 import 'package:stunt_application/custom_widget/sendMessageCard.dart';
 import 'package:stunt_application/models/message_model.dart';
+import 'package:stunt_application/utils/config.dart';
 import 'package:stunt_application/utils/sqlite_helper.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiState.dart';
@@ -55,6 +58,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   late SocketProviderBloc socketBloc;
   Timer? _checkTypingTimer;
   SqliteHelper sqlite = SqliteHelper();
+  static const String link = Configs.LINK;
+  String token = '';
 
   @override
   void initState() {
@@ -63,6 +68,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     socketBloc = context.read<SocketProviderBloc>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await SessionManager.getUser();
+      token = await SessionManager.getToken() ?? '';
       String currentPage = await SessionManager.getCurrentPage() ?? '';
       if (currentPage.isNotEmpty) {
         await SessionManager.removeCurrentPage();
@@ -209,17 +215,20 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 234, 243, 247),
         appBar: AppBar(
-            backgroundColor: Colors.white,
-            shadowColor: Colors.transparent,
-            iconTheme: const IconThemeData(color: Colors.grey),
-            title: Text(
-              'Konsultasi Gizi',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16 * fem,
-                  color: Colors.black),
-            ),
-            leading: backbutton(fem, context)),
+          backgroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          iconTheme: const IconThemeData(color: Colors.grey),
+          title: Text(
+            'Konsultasi Gizi',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16 * fem,
+                color: Colors.black),
+          ),
+          leading: CustomBackButton(
+            fem: fem,
+          ),
+        ),
         body: Column(children: [
           header(fem, ffem),
           BlocBuilder<KonsultasiBloc, KonsultasiState>(
@@ -479,11 +488,8 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                         radius: 39.0 * fem,
                         backgroundImage: widget.receiverFoto != null &&
                                 widget.receiverFoto!.isNotEmpty
-                            ? MemoryImage(
-                                base64Decode(
-                                  widget.receiverFoto.toString(),
-                                ),
-                              ) as ImageProvider
+                            ? FileImage(File(widget.receiverFoto.toString()))
+                                as ImageProvider
                             : const AssetImage('assets/images/group-1-jAH.png'),
                       )),
                   Column(
@@ -572,30 +578,6 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     return EmojiPicker(
       textEditingController: messageController,
       onEmojiSelected: (category, emoji) => onEmojiSelected(emoji),
-    );
-  }
-
-  Padding backbutton(double fem, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(8.0 * fem),
-      child: Container(
-        height: 20 * fem,
-        width: 20 * fem,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffe2e2e2)),
-          color: const Color(0xffffffff),
-          borderRadius: BorderRadius.circular(8 * fem),
-        ),
-        child: IconButton(
-            onPressed: () async {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.grey,
-              size: 16 * fem,
-            )),
-      ),
     );
   }
 }

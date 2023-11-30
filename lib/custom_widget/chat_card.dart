@@ -1,11 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:io';
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stunt_application/models/contact_model.dart';
 import 'package:stunt_application/models/message_model.dart';
 import 'package:stunt_application/models/user.dart';
 import 'package:stunt_application/pages/Konsultasi/chat_page.dart';
+import 'package:stunt_application/utils/config.dart';
 import 'package:stunt_application/utils/formatTgl.dart';
 import '../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../pages/Akun/edit_akun_api.dart';
@@ -14,9 +16,13 @@ import '../utils/sqlite_helper.dart';
 
 class ChatCard extends StatefulWidget {
   final MessageModel messageModel;
+  final Contact contact;
   final int totalUnread;
   const ChatCard(
-      {super.key, required this.messageModel, required this.totalUnread});
+      {super.key,
+      required this.messageModel,
+      required this.contact,
+      required this.totalUnread});
 
   @override
   State<ChatCard> createState() => _ChatCardState();
@@ -27,6 +33,7 @@ class _ChatCardState extends State<ChatCard> {
   EditAkunApi editAkunApi = EditAkunApi();
   SqliteHelper sqlite = SqliteHelper();
   User user = User();
+  static const String link = Configs.LINK;
 
   @override
   void initState() {
@@ -48,13 +55,11 @@ class _ChatCardState extends State<ChatCard> {
           context,
           MaterialPageRoute(
             builder: (context) => ChatPage(
-              receverID: widget.messageModel.idreceiver == user.userID
-                  ? widget.messageModel.idsender
-                  : widget.messageModel.idreceiver,
-              receiverNama: widget.messageModel.namaReceiver,
-              receiverKet: widget.messageModel.ketReceiver,
-              receiverFoto: widget.messageModel.fotoReceiver,
-              receiverFCM: widget.messageModel.fcm_token,
+              receverID: widget.contact.contact_id,
+              receiverNama: widget.contact.nama,
+              receiverKet: widget.contact.keterangan,
+              receiverFoto: widget.contact.foto,
+              receiverFCM: widget.contact.fcm_token,
             ),
           ),
         );
@@ -109,13 +114,10 @@ class _ChatCardState extends State<ChatCard> {
                 height: double.infinity,
                 child: CircleAvatar(
                   radius: 39.0 * fem,
-                  backgroundImage: widget.messageModel.fotoReceiver != null &&
-                          widget.messageModel.fotoReceiver!.isNotEmpty
-                      ? MemoryImage(
-                          base64Decode(
-                            widget.messageModel.fotoReceiver.toString(),
-                          ),
-                        ) as ImageProvider
+                  backgroundImage: widget.contact.foto != null &&
+                          widget.contact.foto!.isNotEmpty
+                      ? FileImage(File(widget.contact.foto.toString()))
+                          as ImageProvider
                       : const AssetImage('assets/images/group-1-jAH.png'),
                 ),
               ),
@@ -134,7 +136,7 @@ class _ChatCardState extends State<ChatCard> {
                           margin: EdgeInsets.fromLTRB(
                               0 * fem, 0 * fem, 0 * fem, 2 * fem),
                           child: Text(
-                            widget.messageModel.namaReceiver ?? '',
+                            widget.contact.nama ?? '',
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(

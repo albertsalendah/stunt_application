@@ -156,7 +156,8 @@ class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
                             );
                             API_Message result = await api.updateFoto(
                                 userID: user.userID.toString(),
-                                foto: foto,
+                                oldpath: user.foto.toString(),
+                                foto: imagebytes,
                                 token: token);
                             Navigator.pop(context);
                             if (result.status) {

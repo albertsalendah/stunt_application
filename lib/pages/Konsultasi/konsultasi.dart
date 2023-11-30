@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/custom_widget/chat_card.dart';
+import 'package:stunt_application/models/contact_model.dart';
 import 'package:stunt_application/models/message_model.dart';
 import 'package:stunt_application/pages/Konsultasi/daftar_health_worker.dart';
 
@@ -26,6 +27,7 @@ class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
   String token = '';
   List<MessageModel> listMessage = [];
   List<MessageModel> listAllUnread = [];
+  List<Contact> listHealthWorker = [];
 
   @override
   void initState() {
@@ -74,6 +76,7 @@ class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
     await context
         .read<KonsultasiBloc>()
         .getLatestMesage(userID: user.userID.toString());
+    await context.read<KonsultasiBloc>().getDataHealthWorker();
   }
 
   @override
@@ -126,6 +129,8 @@ class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
                       return dateTimeB.compareTo(dateTimeA);
                     });
                     listAllUnread = state.listAllUnread;
+                  } else if (state is HealthWorkerLoaded) {
+                    listHealthWorker = state.healthWorker;
                   }
                   return Expanded(
                     child: SizedBox(
@@ -136,14 +141,13 @@ class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
                         child: ListView.builder(
                           itemCount: listMessage.length,
                           itemBuilder: (context, index) {
-                            var count = listAllUnread.where((element) =>
-                                element.conversationId ==
-                                listMessage[index].conversationId);
                             return Column(
                               children: [
                                 ChatCard(
                                   messageModel: listMessage[index],
-                                  totalUnread: count.length,
+                                  contact: getContact(listMessage[index]),
+                                  totalUnread:
+                                      getUnreadCount(listMessage[index]),
                                 ),
                                 const SizedBox(
                                   height: 8,
@@ -162,6 +166,23 @@ class _KonsultasiState extends State<Konsultasi> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  int getUnreadCount(MessageModel messageModel) {
+    var count = listAllUnread.where(
+        (element) => element.conversationId == messageModel.conversationId);
+    return count.length;
+  }
+
+  Contact getContact(MessageModel messageModel) {
+    String id = messageModel.idreceiver.toString();
+    if (messageModel.idreceiver.toString() == user.userID.toString()) {
+      id = messageModel.idsender.toString();
+    }
+    Contact contact = listHealthWorker.firstWhere(
+        (element) => element.contact_id == id,
+        orElse: () => Contact());
+    return contact;
   }
 
   Padding backbutton(double fem, BuildContext context) {

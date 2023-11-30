@@ -1,10 +1,13 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
+import 'package:stunt_application/models/contact_model.dart';
 import 'package:stunt_application/utils/random_String.dart';
 
 import '../models/message_model.dart';
@@ -40,6 +43,8 @@ class SqliteHelper {
       onCreate: (Database db, int version) async {
         await db.execute(
             'CREATE TABLE $tableName ( id_message VARCHAR(128) PRIMARY KEY, conversation_id VARCHAR(128),id_sender VARCHAR(32),id_receiver VARCHAR(32), tanggal_kirim DATETIME,jam_kirim VARCHAR(10),message VARCHAR(255), image LONGTEXT NULL, messageRead INTEGER(1))');
+        await db.execute(
+            'CREATE TABLE contacts (contact_id VARCHAR(32) PRIMARY KEY, nama VARCHAR(255), noHp VARCHAR(32), email VARCHAR(128),fcm_token VARCHAR(255),foto TEXT NULL,keterangan VARCHAR(255))');
         await db.execute('PRAGMA cache_size = -100000000;');
         log('Table $tableName created successfully!');
       },
@@ -232,6 +237,111 @@ class SqliteHelper {
       );
     }).toList();
     return result;
+  }
+
+  Future<List<Contact>> getAllcontact() async {
+    final db = await database;
+    const String checkQuery = 'SELECT * FROM contacts';
+    final List<Map<String, dynamic>> contacts = await db.rawQuery(checkQuery);
+    List<Contact> result = contacts.map((e) {
+      return Contact(
+          contact_id: e['contact_id'],
+          nama: e['nama'],
+          noHp: e['noHp'],
+          email: e['email'],
+          fcm_token: e['fcm_token'],
+          foto: e['foto'],
+          keterangan: e['keterangan']);
+    }).toList();
+    return result;
+  }
+
+  Future<void> addNewContacts(List<User> users) async {
+    final db = await database;
+    final directory = (await getApplicationDocumentsDirectory()).path;
+    final String checkQuery =
+        'SELECT * FROM contacts WHERE contact_id IN (${users.map((item) => '?').join(', ')})';
+    final List<Map<String, dynamic>> checkResult = await db.rawQuery(
+      checkQuery,
+      users.map((item) => item.userID).toList(),
+    );
+    const String addNewContacts =
+        'INSERT INTO contacts (contact_id, nama, noHp, email, fcm_token, foto,keterangan) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const String updateToken =
+        'UPDATE contacts SET fcm_token = ? WHERE contact_id = ?';
+    const updateFoto = 'UPDATE contacts SET foto = ? WHERE contact_id = ?';
+    const updateKeterangan =
+        'UPDATE contacts SET keterangan = ? WHERE contact_id = ?';
+    for (final user in users) {
+      bool found = false;
+      String filename = user.foto.toString().split('/').last;
+      for (final checked in checkResult) {
+        if (user.userID == checked['contact_id']) {
+          found = true;
+          bool checkFoto = await File('$directory/$filename').exists();
+          String stringCurrentFoto = checked['foto'].toString().split('/').last;
+          File currentFoto = File('$directory/$stringCurrentFoto');
+          if (user.fcm_token != checked['fcm_token']) {
+            await db.rawUpdate(updateToken, [user.fcm_token, user.userID]);
+          }
+          if (user.keterangan != checked['keterangan']) {
+            await db
+                .rawUpdate(updateKeterangan, [user.keterangan, user.userID]);
+          }
+          if (!checkFoto) {
+            try {
+              await currentFoto.delete();
+              await downloadAndSaveFile(filename, user.foto.toString())
+                  .then((value) async {
+                await db.rawUpdate(
+                    updateFoto, ['$directory/$filename', user.userID]);
+              });
+            } catch (e) {
+              log('Gagal Menghapus Foto Profile lama $e');
+            }
+          }
+          break;
+        }
+      }
+      if (!found) {
+        await db.rawInsert(addNewContacts, [
+          user.userID,
+          user.nama,
+          user.nohp,
+          user.email,
+          user.fcm_token,
+          user.foto != null && user.foto.toString().isNotEmpty
+              ? '$directory/$filename'
+              : null,
+          user.keterangan
+        ]);
+        if (user.foto != null && user.foto.toString().isNotEmpty) {
+          await downloadAndSaveFile(filename, user.foto.toString());
+        }
+      }
+    }
+    log('Found ${checkResult.length} Contacts');
+  }
+
+  Future<void> downloadAndSaveFile(String filename, String imagepath) async {
+    try {
+      final response = await dio.get(
+        '$link$imagepath',
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      if (response.statusCode == 200) {
+        final bytes = response.data as List<int>;
+        final appDir = await getApplicationDocumentsDirectory();
+        final file = File('${appDir.path}/$filename');
+
+        await file.writeAsBytes(bytes);
+      } else {
+        log('Failed to download file: ${response.statusCode}');
+      }
+    } catch (error) {
+      log('Error downloading file: $error');
+    }
   }
 
   Future<void> deleteConversation({required String conversation_id}) async {

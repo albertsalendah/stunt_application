@@ -1,15 +1,17 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
-import '../models/user.dart';
+import 'package:stunt_application/models/contact_model.dart';
+import 'package:stunt_application/utils/SessionManager.dart';
+import 'package:stunt_application/utils/config.dart';
 import '../pages/Konsultasi/chat_page.dart';
 
 class ContactCard extends StatefulWidget {
-  final User user;
-  const ContactCard({super.key, required this.user});
+  final Contact contact;
+  const ContactCard({super.key, required this.contact});
 
   @override
   State<ContactCard> createState() => _ContactCardState();
@@ -18,12 +20,16 @@ class ContactCard extends StatefulWidget {
 class _ContactCardState extends State<ContactCard> {
   String foto = '';
   bool isOnline = false;
+  static const String link = Configs.LINK;
+  String token = '';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {});
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      token = await SessionManager.getToken() ?? '';
+    });
   }
 
   @override
@@ -37,11 +43,11 @@ class _ContactCardState extends State<ContactCard> {
           context,
           MaterialPageRoute(
             builder: (context) => ChatPage(
-              receverID: widget.user.userID,
-              receiverNama: widget.user.nama,
-              receiverKet: widget.user.keterangan,
-              receiverFCM: widget.user.fcm_token,
-              receiverFoto: widget.user.foto,
+              receverID: widget.contact.contact_id,
+              receiverNama: widget.contact.nama,
+              receiverKet: widget.contact.keterangan,
+              receiverFCM: widget.contact.fcm_token,
+              receiverFoto: widget.contact.foto,
             ),
           ),
         );
@@ -79,11 +85,13 @@ class _ContactCardState extends State<ContactCard> {
                     BlocBuilder<SocketProviderBloc, SocketState>(
                       builder: (context, state) {
                         if (state is UserConnected) {
-                          if (widget.user.userID == state.connectedUser) {
+                          if (widget.contact.contact_id ==
+                              state.connectedUser) {
                             isOnline = true;
                           }
                         } else if (state is UserDisonnected) {
-                          if (widget.user.userID == state.disconnectedUser) {
+                          if (widget.contact.contact_id ==
+                              state.disconnectedUser) {
                             isOnline = false;
                           }
                         }
@@ -99,10 +107,10 @@ class _ContactCardState extends State<ContactCard> {
                             children: [
                               CircleAvatar(
                                 radius: 39.0 * fem,
-                                backgroundImage: widget.user.foto != null &&
-                                        widget.user.foto!.isNotEmpty
-                                    ? MemoryImage(base64Decode(
-                                            widget.user.foto.toString()))
+                                backgroundImage: widget.contact.foto != null &&
+                                        widget.contact.foto!.isNotEmpty
+                                    ? FileImage(File(
+                                            widget.contact.foto.toString()))
                                         as ImageProvider
                                     : const AssetImage(
                                         'assets/images/group-1-jAH.png'),
@@ -137,7 +145,7 @@ class _ContactCardState extends State<ContactCard> {
                             margin: EdgeInsets.fromLTRB(
                                 0 * fem, 0 * fem, 0 * fem, 2 * fem),
                             child: Text(
-                              widget.user.nama ?? '',
+                              widget.contact.nama ?? '',
                               style: TextStyle(
                                 fontSize: 14 * ffem,
                                 fontWeight: FontWeight.w600,
@@ -147,7 +155,7 @@ class _ContactCardState extends State<ContactCard> {
                             ),
                           ),
                           Text(
-                            widget.user.keterangan ?? '',
+                            widget.contact.keterangan ?? '',
                             style: TextStyle(
                               fontSize: 12 * ffem,
                               fontWeight: FontWeight.w400,

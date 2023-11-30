@@ -1,10 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stunt_application/custom_widget/backbutton.dart';
 import 'package:stunt_application/custom_widget/contact_card.dart';
+import 'package:stunt_application/models/contact_model.dart';
 
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiState.dart';
@@ -21,7 +20,7 @@ class DaftarHealthWorker extends StatefulWidget {
 class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
   User user = User();
   String token = '';
-  List<User> listHealthWorker = [];
+  List<Contact> listHealthWorker = [];
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -40,7 +39,7 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
     await context.read<KonsultasiBloc>().getDataHealthWorker();
   }
 
-  List<User> get searchfilteredList {
+  List<Contact> get searchfilteredList {
     return listHealthWorker.where((item) {
       bool mNama = true;
       if (searchController.text.isNotEmpty) {
@@ -74,7 +73,7 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
                   fontSize: 16 * fem,
                   color: Colors.black),
             ),
-            leading: backbutton(fem, context),
+            leading: CustomBackButton(fem: fem),
           ),
           body: BlocBuilder<KonsultasiBloc, KonsultasiState>(
             builder: (context, state) {
@@ -120,7 +119,6 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
                       .toLowerCase()
                       .compareTo(b.nama.toString().toLowerCase());
                 });
-                log('List : ${listHealthWorker.length}');
               }
               if (listHealthWorker.isEmpty) {
                 return Center(
@@ -171,7 +169,7 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: ContactCard(user: searchfilteredList[index]),
+                            child: ContactCard(contact: searchfilteredList[index]),
                           );
                         },
                       ),
@@ -182,30 +180,6 @@ class _DaftarHealthWorkerState extends State<DaftarHealthWorker> {
             },
           ),
         ),
-      ),
-    );
-  }
-
-  Padding backbutton(double fem, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(8.0 * fem),
-      child: Container(
-        height: 20 * fem,
-        width: 20 * fem,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffe2e2e2)),
-          color: const Color(0xffffffff),
-          borderRadius: BorderRadius.circular(8 * fem),
-        ),
-        child: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.grey,
-              size: 16 * fem,
-            )),
       ),
     );
   }
