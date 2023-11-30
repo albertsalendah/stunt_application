@@ -64,8 +64,11 @@ class ReceiveMessageCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(File(message.image.toString()))),
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(File(
+                        message.image.toString(),
+                      )),
+                    ),
                   )
                 ],
                 Stack(children: [

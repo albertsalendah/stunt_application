@@ -15,7 +15,6 @@ import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
 import 'package:stunt_application/custom_widget/backbutton.dart';
 import 'package:stunt_application/custom_widget/sendMessageCard.dart';
 import 'package:stunt_application/models/message_model.dart';
-import 'package:stunt_application/utils/config.dart';
 import 'package:stunt_application/utils/sqlite_helper.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../../Bloc/KonsultasiBloc/konsultasiState.dart';
@@ -58,7 +57,6 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   late SocketProviderBloc socketBloc;
   Timer? _checkTypingTimer;
   SqliteHelper sqlite = SqliteHelper();
-  static const String link = Configs.LINK;
   String token = '';
 
   @override
@@ -69,6 +67,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       user = await SessionManager.getUser();
       token = await SessionManager.getToken() ?? '';
+      socketBloc.socket?.emit('signIn', user.userID.toString());
       String currentPage = await SessionManager.getCurrentPage() ?? '';
       if (currentPage.isNotEmpty) {
         await SessionManager.removeCurrentPage();

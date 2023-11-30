@@ -7,7 +7,6 @@ import 'package:stunt_application/models/contact_model.dart';
 import 'package:stunt_application/models/message_model.dart';
 import 'package:stunt_application/models/user.dart';
 import 'package:stunt_application/pages/Konsultasi/chat_page.dart';
-import 'package:stunt_application/utils/config.dart';
 import 'package:stunt_application/utils/formatTgl.dart';
 import '../Bloc/KonsultasiBloc/konsultasiBloc.dart';
 import '../pages/Akun/edit_akun_api.dart';
@@ -33,7 +32,6 @@ class _ChatCardState extends State<ChatCard> {
   EditAkunApi editAkunApi = EditAkunApi();
   SqliteHelper sqlite = SqliteHelper();
   User user = User();
-  static const String link = Configs.LINK;
 
   @override
   void initState() {

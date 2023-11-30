@@ -6,7 +6,6 @@ import 'package:stunt_application/Bloc/SocketBloc/socket_bloc.dart';
 import 'package:stunt_application/Bloc/SocketBloc/socket_state.dart';
 import 'package:stunt_application/models/contact_model.dart';
 import 'package:stunt_application/utils/SessionManager.dart';
-import 'package:stunt_application/utils/config.dart';
 import '../pages/Konsultasi/chat_page.dart';
 
 class ContactCard extends StatefulWidget {
@@ -20,7 +19,6 @@ class ContactCard extends StatefulWidget {
 class _ContactCardState extends State<ContactCard> {
   String foto = '';
   bool isOnline = false;
-  static const String link = Configs.LINK;
   String token = '';
 
   @override

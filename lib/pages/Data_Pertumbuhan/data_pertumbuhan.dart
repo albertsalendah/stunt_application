@@ -11,7 +11,6 @@ import 'package:stunt_application/custom_widget/popUpConfirm.dart';
 import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../Bloc/AllBloc/all_state.dart';
-import '../../navigation_bar.dart';
 import '../../custom_widget/popup_error.dart';
 import '../../custom_widget/popup_success.dart';
 import '../../models/data_anak_model.dart';

@@ -272,6 +272,19 @@ class SqliteHelper {
     const updateFoto = 'UPDATE contacts SET foto = ? WHERE contact_id = ?';
     const updateKeterangan =
         'UPDATE contacts SET keterangan = ? WHERE contact_id = ?';
+    const String deleteContact = 'DELETE FROM contacts WHERE contact_id = ?';
+
+    List<List<dynamic>> batchValues = [];
+
+    for (final checked in checkResult) {
+      bool existsInUsersList =
+          users.any((user) => user.userID == checked['contact_id']);
+
+      if (!existsInUsersList) {
+        await db.rawDelete(deleteContact, [checked['contact_id']]);
+      }
+    }
+
     for (final user in users) {
       bool found = false;
       String filename = user.foto.toString().split('/').last;
@@ -304,7 +317,7 @@ class SqliteHelper {
         }
       }
       if (!found) {
-        await db.rawInsert(addNewContacts, [
+        batchValues.add([
           user.userID,
           user.nama,
           user.nohp,
@@ -319,6 +332,14 @@ class SqliteHelper {
           await downloadAndSaveFile(filename, user.foto.toString());
         }
       }
+    }
+
+    if (batchValues.isNotEmpty) {
+      await db.transaction((txn) async {
+        for (var batchValue in batchValues) {
+          await txn.rawInsert(addNewContacts, batchValue);
+        }
+      });
     }
     log('Found ${checkResult.length} Contacts');
   }
