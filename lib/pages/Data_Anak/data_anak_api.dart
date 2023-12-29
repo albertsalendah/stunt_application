@@ -20,7 +20,7 @@ class DataAnakApi {
     List<DataAnakModel> data = [];
     try {
       dio.options.headers['x-access-token'] = token;
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}get_data_anak',
         data: {'userID': userID},
       );
@@ -53,7 +53,7 @@ class DataAnakApi {
     DataAnakModel data = DataAnakModel();
     try {
       dio.options.headers['x-access-token'] = token;
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}get_detail_anak',
         data: {'userID': userID, 'id_anak': id_anak},
       );

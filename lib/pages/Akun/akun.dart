@@ -201,24 +201,24 @@ class _AkunState extends State<Akun> {
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
-                      const Row(
-                        children: [
-                          Icon(
-                            Icons.question_mark,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(
-                            width: 12,
-                          ),
-                          Text(
-                            'Bantuan',
-                            style: TextStyle(fontSize: 16),
-                          )
-                        ],
-                      ),
+                      // const SizedBox(
+                      //   height: 16,
+                      // ),
+                      // const Row(
+                      //   children: [
+                      //     Icon(
+                      //       Icons.question_mark,
+                      //       color: Colors.grey,
+                      //     ),
+                      //     SizedBox(
+                      //       width: 12,
+                      //     ),
+                      //     Text(
+                      //       'Bantuan',
+                      //       style: TextStyle(fontSize: 16),
+                      //     )
+                      //   ],
+                      // ),
                       const SizedBox(
                         height: 16,
                       ),
@@ -410,7 +410,7 @@ class _AkunState extends State<Akun> {
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (context) => const UpdateFotoPopUp(),
+                  builder: (context) => UpdateFotoPopUp(user: user),
                 ).then((value) async {
                   await fetch_Data();
                 });

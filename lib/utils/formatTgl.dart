@@ -13,8 +13,7 @@ class FormatTgl {
   String setTgl(String? tgl) {
     if (tgl != null && tgl != '0000-00-00') {
       DateTime date = DateFormat('yyyy-MM-dd').parse(tgl);
-      return DateFormat('dd MMMM yyyy')
-          .format(date.add(const Duration(days: 1)));
+      return DateFormat('dd MMMM yyyy').format(date);
     } else {
       return '';
     }

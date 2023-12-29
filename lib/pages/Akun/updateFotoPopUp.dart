@@ -12,6 +12,7 @@ import 'package:mime/mime.dart';
 import 'package:stunt_application/custom_widget/popUpLoading.dart';
 import 'package:stunt_application/custom_widget/popup_error.dart';
 import 'package:stunt_application/models/api_massage.dart';
+import 'package:stunt_application/utils/config.dart';
 
 import '../../Bloc/AllBloc/all_bloc.dart';
 import '../../models/user.dart';
@@ -19,13 +20,15 @@ import 'edit_akun_api.dart';
 import '../../utils/SessionManager.dart';
 
 class UpdateFotoPopUp extends StatefulWidget {
-  const UpdateFotoPopUp({super.key});
+  final User user;
+  const UpdateFotoPopUp({super.key, required this.user});
 
   @override
   State<UpdateFotoPopUp> createState() => _UpdateFotoPopUpState();
 }
 
 class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
+  static const String link = Configs.LINK;
   EditAkunApi api = EditAkunApi();
   User user = User();
   String token = '';
@@ -107,35 +110,41 @@ class _UpdateFotoPopUpState extends State<UpdateFotoPopUp> {
                 margin:
                     EdgeInsets.fromLTRB(5 * fem, 0 * fem, 5 * fem, 20 * fem),
                 width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        pickPicture();
-                      },
-                      child: CircleAvatar(
-                        radius: 65.0,
-                        backgroundImage: imagebytes != null
-                            ? MemoryImage(imagebytes!) as ImageProvider
-                            : const AssetImage('assets/images/group-115.png'),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.only(top: 8),
-                      margin: EdgeInsets.fromLTRB(
-                          0 * fem, 0 * fem, 0 * fem, 7 * fem),
-                      child: Text(
-                        'Tekan Foto Untuk Memilih Foto Baru',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16 * ffem,
-                          height: 1.2125 * ffem / fem,
-                          color: const Color(0xff161f35),
+                child: GestureDetector(
+                  onTap: () {
+                    pickPicture();
+                  },
+                  child: CircleAvatar(
+                    radius: 65.0,
+                    backgroundImage: imagebytes != null
+                        ? MemoryImage(imagebytes!)
+                        : user.foto != null && user.foto!.isNotEmpty
+                            ? NetworkImage(link + user.foto.toString(),
+                                    headers: {'x-access-token': token})
+                                as ImageProvider
+                            : const AssetImage(
+                                'assets/images/group-115.png'),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: 130,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(200),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(65),
+                            bottomRight: Radius.circular(65),
+                          ),
                         ),
+                        child: const Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Ubah',
+                              style: TextStyle(color: Colors.black),
+                            )),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
               Row(

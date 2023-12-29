@@ -21,7 +21,7 @@ class ImunisasiAPI {
     List<JadwalVaksinModel> data = [];
     try {
       dio.options.headers['x-access-token'] = token;
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}jadwalvaksin',
         data: {'userID': userID, "id_anak": id_anak},
       );
@@ -48,7 +48,7 @@ class ImunisasiAPI {
     List<DaftarVaksinModel> data = [];
     try {
       dio.options.headers['x-access-token'] = token;
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}daftarvaksin',
         data: {'umur': umur},
       );

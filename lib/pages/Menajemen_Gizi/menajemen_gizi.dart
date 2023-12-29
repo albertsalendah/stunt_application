@@ -367,7 +367,7 @@ class _MenajemenGiziState extends State<MenajemenGizi> {
 
   //hapus .add(const Duration(days: 1)) saat deploy
   String formatTglMenu(String tgl) {
-    DateTime parsedDate = DateTime.parse(tgl).add(const Duration(days: 1));
+    DateTime parsedDate = DateTime.parse(tgl);
     return DateFormat('yyyy-MM-dd').format(parsedDate).toString();
   }
 

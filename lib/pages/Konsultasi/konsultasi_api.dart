@@ -55,7 +55,7 @@ class KonsultasiAPI {
     List<MessageModel> data = [];
     user = await SessionManager.getUser();
     try {
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}get_latest_self_message',
         data: {'userID': senderID},
       );

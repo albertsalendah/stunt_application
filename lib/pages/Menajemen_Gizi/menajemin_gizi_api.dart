@@ -23,7 +23,7 @@ class MenajemenGiziApi {
     List<MenuMakanModel> data = [];
     try {
       dio.options.headers['x-access-token'] = token;
-      final response = await dio.get(
+      final response = await dio.post(
         '${link}list_menu_makan',
         data: {'userID': userID, 'id_anak': id_anak, 'tanggal': tanggal},
       );
